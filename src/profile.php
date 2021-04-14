@@ -34,9 +34,7 @@ include_once 'database.php';
 
 		<div class="content">
 
-			<?php listForums(1); ?>
-
-			<?php listThreads(1); ?>
+			<p> user content goes here </p>
 
 		</div>
 

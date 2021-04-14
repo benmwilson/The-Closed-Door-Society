@@ -2,7 +2,7 @@
 	
 	include_once 'database.php';
 	
-	function header_no_user() {
+	function notLoggedInHeader() {
 		$requestURI = $_SERVER['REQUEST_URI'];
 		echo "<form action=\"login.php\" method=\"POST\">";
 		echo "<input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Username\">";
@@ -17,7 +17,7 @@
 	
 	if(isset($_SESSION['userid'])) {
 		
-		$user = get_user_by_id($_SESSION['userid']);
+		$user = getUserByID($_SESSION['userid']);
 		
 		if($_SESSION['passhash'] == $user[3]) {
 			
@@ -34,11 +34,11 @@
 			echo "</h3>";
 			
 		} else {
-			header_no_user();
+			notLoggedInHeader();
 		}
 		
 	} else {
-		header_no_user();
+		notLoggedInHeader();
 	}
 	
 	echo "</div>";
