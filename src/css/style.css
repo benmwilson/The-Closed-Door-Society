@@ -1,0 +1,200 @@
+:root {
+
+	--color-yellow: #FFC819;
+	--color-red: #B31212;
+	--color-dark-red: #660000;
+	--color-dark-blue: #004E7F;
+	--color-light-blue: #0DA1FF;
+	--color-off-black: #1B1B1B;
+	--color-off-white: #FFFFF0;
+
+	--border-yellow: 0.1rem solid var(--color-yellow);
+	
+	color: var(--color-off-white);
+
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover, a:visited {
+	color: var(--color-dark-blue);
+}
+
+a:link {
+	color: var(--color-light-blue);
+}
+
+h1 {
+	color: var(--color-yellow);
+	text-align: center;
+	font-size: 5rem;
+	text-decoration: underline;
+}
+
+h2 {
+	color: var(--color-off-white);
+	text-align: center;
+	font-size: 2rem;
+	text-decoration: underline;
+}
+
+h3 {
+	color: var(--color-yellow);
+	text-align: center;
+	font-size: 1rem;
+}
+
+h4 {
+	color: var(--color-off-white);
+	font-size: 1rem;
+	text-overflow: ellipsis;
+}
+
+p {
+
+	margin: 0.2rem 0rem;
+
+	color: var(--color-off-white);
+	font-size: 0.8rem;
+
+}
+
+img.profile-pic {
+	border: var(--border-yellow);
+	width: 100px;
+	height: 100px;
+}
+
+img.profile-pic-large {
+	border: var(--border-yellow);
+	width: 200px;
+	height: 200px;
+}
+
+body {
+
+	background-color: var(--color-off-black);
+
+	font-family: Tahoma, Sans-Serif;
+
+	display: flex;
+	flex-direction: column;
+
+}
+
+textarea {
+	
+	margin: 0.5rem;
+	display: block;
+	
+}
+
+input.reply {
+	
+	margin: 0.5rem;
+	display: block;
+	
+}
+
+div {
+
+	margin: 0.5rem;
+
+}
+
+div.header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+div.left-header, div.right-header {
+	flex-shrink: 0;
+}
+
+div.right-header input {
+	display: block;
+	margin: 0.5rem;
+}
+
+div.right-header input[type=submit] {
+	display: inline;
+}
+
+nav {
+
+	display: flex;
+	flex-direction: row;
+	justify-content: left;
+
+}
+
+a.header-nav {
+
+	flex: 0, 0, auto;
+
+	margin-right: 2rem;
+
+	font-size: 2rem;
+
+}
+
+div.main {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+div.sidebar, div.content {
+
+	background-color: var(--color-dark-red);
+	border: var(--border-yellow);
+
+	padding: 0.5rem;
+
+}
+
+div.sidebar {
+	flex: 1 1 15%;
+}
+
+div.content {
+	flex: 1 1 85%;
+}
+
+div.content-row {
+
+	background-color: var(--color-red);
+	border: var(--border-yellow);
+
+	display: flex;
+	flex-direction: row;
+
+}
+
+div.post-title {
+	flex: 1 1 15%;
+}
+
+div.post-preview {
+	flex: 1 1 85%;
+}
+
+div.footer {
+	color: var(--color-yellow);
+}
+
+div.nav {
+	justify-content: center;
+}
+
+div.label {
+	margin: 0.5rem;
+	text-align: center;
+}
+
+input.title {
+	width: 12rem;
+}
