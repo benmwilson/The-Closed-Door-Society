@@ -105,7 +105,6 @@ function listForums($parentID)
 	}
 
 	$forums->close();
-
 }
 
 // Echo a list of threads in this forum
@@ -158,27 +157,79 @@ function listThreads($forumID)
 	}
 }
 
-// Echo a list of comments in this thread
-
-function listComments($threadID){
-}
-
 // Echo the user profile 
 
-function userProfile($userID){
+function userProfile($userID)
+{
+
+	global $commentQueryByUser, $threadQueryByThread;
+
+	$user = getUserByID($userID);
+	$username = $user[1];
+
+	echo "<h2>$username's Profile</h2>";
+	echo "<div class=\"content-row\">";
+	echo "<div class=\"profile-pic\">";
+	echo "<img class=\"profile-pic-large\" src=\"img/$userID.png\">";
+	echo "</div>";
+	echo "<div class=\"profile-desc\">";
+	echo "<p>User Description Here</p>";
+	echo "</div>";
+	echo "</div>";
+
+	// amount of comments to display on user's profile
+	$amount = 10;
+
+	$commentQueryByUser->bind_param("ii", $user[0], $amount);
+	$commentQueryByUser->execute();
+	$comments = $commentQueryByUser->get_result();
+
+	echo "<h2>$username's Post Activity</h2>";
+	echo "<div class=\"content-row\">";
+	echo "<div class=\"post-title\">";
+
+
+	while ($comment = $comments->fetch_row()) {
+
+		$threadQueryByThread->bind_param("i", $comment[2]);
+		$threadQueryByThread->execute();
+		$thread = $threadQueryByThread->get_result()->fetch_row();
+
+		$threadID = $thread[0];
+		$threadTitle = $thread[3];
+		$commentContent = $comment[4];
+
+		echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
+		echo "</div>";
+		echo "<div class=\"post-preview\">";
+		echo "<p>$commentContent</p>";
+	}
+
+	echo "</div>";
+	echo "</div>";
 }
+
+// Echo a list of comments in this thread
+
+function listComments($threadID)
+{
+}
+
 
 // Insert a user into the DB
 
-function insertUser($username, $password, $email){
+function insertUser($username, $password, $email)
+{
 }
 
 // Insert a thread into the DB
 
-function insertThread($posterID, $forumID, $title, $content){
+function insertThread($posterID, $forumID, $title, $content)
+{
 }
 
 // Insert a comment into the DB
 
-function insertComment($posterID, $threadID, $content){
+function insertComment($posterID, $threadID, $content)
+{
 }
