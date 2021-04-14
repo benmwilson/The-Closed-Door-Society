@@ -83,9 +83,10 @@ CREATE TABLE Comments(
 
 -- Populate Tables
 
--- INSERT INTO Users(Username, Email, Password, Administrator) VALUES
-	
--- ;
+INSERT INTO Users(Username, Email, Password, Administrator) VALUES
+	("user1", "user1email@closeddoor.net", "pass", 0),
+	("user2", "user2email@closeddoor.net", "p@ss", 0)	
+;
 
 INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUES
 	(NULL, NOW(), 'Main', 'Main Forum'),
@@ -96,10 +97,10 @@ INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUES
 
 INSERT INTO Threads(ForumID, UpdateTime, Title) VALUES
 	(1, NOW(), "The first thread"),
-	(2, NOW(), "The second thread"),
+	(2, NOW(), "The second thread")
 ;
 
 INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUES
 	(2, 1, NOW(), "This is a comment."),
-	(1, 1, NOW(), "This is another comment."),
+	(1, 1, NOW(), "This is another comment.")
 ;
