@@ -187,3 +187,10 @@ div.label {
 input.title {
   width: 12rem;
 }
+
+#titleText {
+  color: var(--color-off-white);
+  text-align: left;
+  font-size: 3rem;
+  background: var(--color-off-black);
+}

@@ -16,6 +16,7 @@ $userInsert = $db->prepare("INSERT INTO Users(Username, Email, Password, Adminis
 
 // Forum related
 $forumQuery = $db->prepare("SELECT * FROM Forums WHERE Parent = ? ORDER BY UpdateTime DESC;");
+$forumIDQuery = $db->prepare("SELECT * FROM Forums WHERE ID = ?");
 $forumUpdateTime = $db->prepare("UPDATE Forums SET UpdateTime = NOW() WHERE ID = ?;");
 
 // Thread related
@@ -66,6 +67,23 @@ function getUserByID($userID)
 
 	if ($user = $result->fetch_row()) {
 		return $user;
+	} else {
+		return null;
+	}
+
+	$result->close();
+}
+
+function getForumByID($forumID)
+{
+	global $forumIDQuery;
+
+	$forumIDQuery->bind_param("i", $forumID);
+	$forumIDQuery->execute();
+	$result = $forumIDQuery->get_result();
+
+	if ($forum = $result->fetch_row()) {
+		return $forum;
 	} else {
 		return null;
 	}
@@ -213,6 +231,37 @@ function userProfile($userID)
 
 function listComments($threadID)
 {
+	global $commentQueryByThread;
+
+	$parsedThread = intval($threadID);
+	$amount = 3;
+
+	$commentQueryByThread->bind_param("ii", $parsedThread, $amount);
+	$commentQueryByThread->execute();
+	$comments = $commentQueryByThread->get_result();
+
+	if ($comments->num_rows > 0) {
+		echo "<h2>Comments</h2>";
+	}
+
+	while ($commentsRow = $comments->fetch_row()) {
+
+		$commentId = $commentsRow[0];
+		$commentPosterId = $commentsRow[1];
+		$commentTime = $commentsRow[3];
+		$commentData = $commentsRow[4];
+
+		$poster = getUserByID($commentPosterId);
+		$username = $poster[1];
+		
+		echo "<br>";
+		echo "<fieldset class='comment'>";
+		echo "<legend>[$username at $commentTime]</legend>";
+		echo "<p>$commentData</p>";
+		echo "</fieldset>";
+	}
+
+	$comments->close();
 }
 
 
