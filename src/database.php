@@ -163,9 +163,11 @@ function listThreads($forumID)
 		echo "<div class=\"content-row\">";
 		echo "<form action=\"post.php\" method=\"POST\">";
 		echo "<div class=\"label\">";
+		echo "<h2>New Thread</h2>";
 		echo "<label for=\"title\">Title: </label>";
 		echo "<input type=\"text\" class=\"title\" id=\"title\" name=\"title\">";
 		echo "</div>";
+		echo "<label>Content</label>";
 		echo "<textarea id=\"replytext\" name=\"replytext\" rows=\"4\" cols=\"40\"></textarea>";
 		echo "<input type=\"submit\" class=\"reply\" value=\"Post\">";
 		echo "<input type=\"hidden\" id=\"forumid\" name=\"forumid\" value=\"$forumID\">";
@@ -227,25 +229,43 @@ function userProfile($userID)
 	echo "</div>";
 }
 
+
+
+
+
+
+
+
+
+
 // Echo a list of comments in this thread
 
 function listComments($threadID)
 {
-	global $commentQueryByThread;
+	global $threadQueryByThread, $commentQueryByThread;
 
 	$parsedThread = intval($threadID);
 	$amount = 3;
+	$threadQueryByThread->bind_param("i", $threadID);
+	$threadQueryByThread->execute();
+	$thread = $threadQueryByThread->get_result();
+
+	if ($thread->num_rows == 0) {
+		header("Location: main.php");
+		die();
+	} else {
+		$threadTitle = $thread->fetch_row()[3];
+	}
 
 	$commentQueryByThread->bind_param("ii", $parsedThread, $amount);
 	$commentQueryByThread->execute();
 	$comments = $commentQueryByThread->get_result();
 
-	if ($comments->num_rows > 0) {
-		echo "<h2>Comments</h2>";
-	}
+	echo "<h2>$threadTitle</h2>";
 
 	while ($commentsRow = $comments->fetch_row()) {
 
+		$posterID = $commentsRow[1];
 		$commentId = $commentsRow[0];
 		$commentPosterId = $commentsRow[1];
 		$commentTime = $commentsRow[3];
@@ -253,32 +273,106 @@ function listComments($threadID)
 
 		$poster = getUserByID($commentPosterId);
 		$username = $poster[1];
-		
+
 		echo "<br>";
+		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/$posterID.png\"></a>";
 		echo "<fieldset class='comment'>";
 		echo "<legend>[$username at $commentTime]</legend>";
 		echo "<p>$commentData</p>";
 		echo "</fieldset>";
 	}
 
+	if (isset($_SESSION['userid'])) {
+
+		$requestURI = $_SERVER['REQUEST_URI'];
+
+		echo "<div class=\"content-row\">";
+		echo "<form action=\"reply.php\" method=\"POST\">";
+		echo "<textarea id=\"replytext\" name=\"replytext\" rows=\"4\" cols=\"40\"></textarea>";
+		echo "<input type=\"submit\" class=\"reply\" value=\"Reply\">";
+		echo "<input type=\"hidden\" id=\"threadid\" name=\"threadid\" value=\"$threadID\">";
+		echo "<input type=\"hidden\" id=\"redirect\" name=\"redirect\" value=\"$requestURI\">";
+		echo "</form>";
+		echo "</div>";
+	}
+
 	$comments->close();
 }
+
+
+
+
+
 
 
 // Insert a user into the DB
 
 function insertUser($username, $password, $email)
 {
+	global $userInsert;
+
+	$password = password_hash($password, PASSWORD_DEFAULT);
+
+	$userInsert->bind_param("sss", $username, $email, $password);
+	$userInsert->execute();
+
+	echo $userInsert->affected_rows;
+
+	if ($userInsert->affected_rows > 0) {
+		//$result = $userInsert->get_result();
+		session_start();
+		$_SESSION['userid'] = $userInsert->insert_id;
+		$_SESSION['passhash'] = $password;
+	}
+
+	return $userInsert->affected_rows;
 }
 
 // Insert a thread into the DB
 
 function insertThread($posterID, $forumID, $title, $content)
 {
+
+	global $threadInsert, $commentInsert, $forumUpdateTime;
+
+	// Some modest input sanitation
+	$title = strip_tags($title);
+	$content = strip_tags($content);
+	$content = str_replace("\n", "<br>", $content);
+
+	$threadInsert->bind_param("is", $forumID, $title);
+	$threadInsert->execute();
+
+	$threadID = $threadInsert->insert_id;
+
+	$commentInsert->bind_param("iis", $posterID, $threadID, $content);
+	$commentInsert->execute();
+
+	$forumUpdateTime->bind_param("i", $forumID);
+	$forumUpdateTime->execute();
 }
 
 // Insert a comment into the DB
 
 function insertComment($posterID, $threadID, $content)
 {
+
+	global $commentInsert, $threadUpdateTime, $forumUpdateTime, $threadQueryByThread;
+		
+	// Some modest input sanitation
+	$content = strip_tags($content);
+	$content = str_replace("\n", "<br>", $content);
+	
+	$commentInsert->bind_param("iis", $posterID, $threadID, $content);
+	$commentInsert->execute();
+	
+	$threadQueryByThread->bind_param("i", $threadID);
+	$threadQueryByThread->execute();
+	$thread = $threadQueryByThread->get_result()->fetch_row();
+	$forumID = $thread[1];
+	
+	$threadUpdateTime->bind_param("i", $threadID);
+	$forumUpdateTime->bind_param("i", $forumID);
+	$threadUpdateTime->execute();
+	$forumUpdateTime->execute();
 }
