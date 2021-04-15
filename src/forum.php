@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once 'database.php';
+include_once 'render.php';
 ?>
 
 <!DOCTYPE html>
@@ -31,8 +32,8 @@ include_once 'database.php';
         <div class="content">
             
             <!-- List forums/threads here, use function from database.php -->
-            
-            <p> forums/threads go here </p>
+            <?php displayThreadTitle($_GET['id']) ?>
+            <?php listThreads($_GET['id']) ?>
             
         </div>
         

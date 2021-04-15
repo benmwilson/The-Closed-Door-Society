@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once 'database.php';
+include_once 'render.php';
 ?>
 
 <!DOCTYPE html>
@@ -32,12 +33,9 @@ include_once 'database.php';
         <div class="content">
 
             <!-- List comments here, use function from database.php -->
-            <!-- <?php listComments($_GET['id']) ?> -->
-
-            <p> comments go here </p>
-
-            
-
+            <?php displayThreadTitle($_GET['id']) ?>
+            <?php listComments($_GET['id']) ?>
+        
         </div>
 
         <div class="sidebar">
