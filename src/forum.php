@@ -32,7 +32,8 @@ include_once 'render.php';
         <div class="content">
             
             <!-- List forums/threads here, use function from database.php -->
-            <?php displayThreadTitle($_GET['id']) ?>
+            <?php displayThreadTitle($_GET['id'], 'main.php') ?>
+            <?php listForums($_GET['id']) ?>
             <?php listThreads($_GET['id']) ?>
             
         </div>

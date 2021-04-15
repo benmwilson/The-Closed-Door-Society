@@ -33,7 +33,7 @@ include_once 'render.php';
         <div class="content">
 
             <!-- List comments here, use function from database.php -->
-            <?php displayThreadTitle($_GET['id']) ?>
+            <?php displayThreadTitle($_GET['id'], $_SERVER['HTTP_REFERER']) ?>
             <?php listComments($_GET['id']) ?>
         
         </div>

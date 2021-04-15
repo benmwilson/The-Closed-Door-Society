@@ -136,7 +136,7 @@ function listThreads($forumID)
 	$threadQueryByForum->execute();
 	$threads = $threadQueryByForum->get_result();
 
-	$amount = 1;
+	$amount = 10;
 	$commentQueryByThread->bind_param("ii", $threadID, $amount);
 
 	echo "<h2>Threads</h2>";
@@ -205,9 +205,6 @@ function userProfile($userID)
 	$comments = $commentQueryByUser->get_result();
 
 	echo "<h2>$username's Post Activity</h2>";
-	echo "<div class=\"content-row\">";
-	echo "<div class=\"post-title\">";
-
 
 	while ($comment = $comments->fetch_row()) {
 
@@ -219,14 +216,15 @@ function userProfile($userID)
 		$threadTitle = $thread[3];
 		$commentContent = $comment[4];
 
+		echo "<div class=\"content-row\">";
+		echo "<div class=\"post-title\">";
 		echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
 		echo "</div>";
 		echo "<div class=\"post-preview\">";
 		echo "<p>$commentContent</p>";
+		echo "</div>";
+		echo "</div>";
 	}
-
-	echo "</div>";
-	echo "</div>";
 }
 
 
