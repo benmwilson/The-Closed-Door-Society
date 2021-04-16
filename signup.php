@@ -11,6 +11,7 @@ if (isset($_SESSION['userid'])) {
 }
 
 include_once 'database.php';
+include_once 'render.php';
 
 ?>
 
@@ -21,6 +22,7 @@ include_once 'database.php';
     <title>TCDS</title>
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />
 </head>
 
 <body>
@@ -36,12 +38,6 @@ include_once 'database.php';
     </div>
 
     <div class="main">
-
-        <div class="sidebar">
-            <h2>Behind The Closed Doors</h2>
-            <p>Always watching</p>
-            <img src="img/logo.jpg" alt="" width="250" height="250">
-        </div>
 
         <div class="content">
 
@@ -80,6 +76,10 @@ include_once 'database.php';
             </form>
 
         </div>
+
+        <div class="sidebar">
+			<?php displayNews(); ?>
+		</div>
 
     </div>
 

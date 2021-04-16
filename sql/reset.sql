@@ -62,6 +62,7 @@ CREATE TABLE Comments(
 	ThreadID INT NOT NULL,
 	UpdateTime DATETIME NOT NULL,
 	Content TEXT NOT NULL,
+	Likes INT NOT NULL DEFAULT 1,
 	
 	PRIMARY KEY (ID),
 	FOREIGN KEY (PosterID) REFERENCES Users(ID),
@@ -70,44 +71,65 @@ CREATE TABLE Comments(
 	
 );
 
-/*CREATE TABLE UserComments(
+CREATE TABLE Images(
 
+	ID INT NOT NULL AUTO_INCREMENT,
+	UpdateTime DATETIME NOT NULL,
+	Image BLOB NOT NULL,
+	
+	PRIMARY KEY (ID),
+	INDEX (UpdateTime)
+	
+);
+
+CREATE TABLE News(
+
+	ID INT NOT NULL AUTO_INCREMENT,
+	UpdateTime DATETIME NOT NULL,
+	Title VARCHAR(56) NOT NULL,
+	Content TEXT NOT NULL,
+	Img BLOB NOT NULL,
+	
+	PRIMARY KEY (ID),
+	INDEX (UpdateTime)
+	
+);
+
+CREATE TABLE Likes(
+
+	ID INT NOT NULL AUTO_INCREMENT,
+	UpdateTime DATETIME NOT NULL,
 	UserID INT NOT NULL,
 	CommentID INT NOT NULL,
 	
-	PRIMARY KEY (UserID, CommentID),
-	FOREIGN KEY (UserID) REFERENCES Users(ID),
-	FOREIGN KEY (CommentID) REFERENCES Comments(ID)
-
-);*/
+	PRIMARY KEY (ID),
+	INDEX (UpdateTime)
+	
+);
 
 -- Populate Tables
 
--- Kyriau password: password
--- asdf password: asdf
+INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUES
+	(NULL, NOW(), 'Main', 'Main Forum'),
+	(1, NOW(), 'World Domination Plans', 'Talk about how you will take over the world!'),
+	(1, NOW(), 'Weapons of Mass Destruction ', 'Talk about what The Department of Homeland Security doesnt want you to have!'),
+	(3, NOW(), 'Henchmen for Hire', 'A board to see out henchmen.')
+;
+
+INSERT INTO News(UpdateTime, Title, Content) VALUES (NOW(), 'Title', 'Content');
+
 -- INSERT INTO Users(Username, Email, Password, Administrator) VALUES
--- 	('Kyriau', 'jeff.aj.thomson@alumni.ubc.ca', '$2y$10$pINMe25SdcTeCnQ/P2pveeVQwvVOGZC3L5upOejatOQnPgTjJPujG', TRUE),
--- 	('asdf', 'asdf@asdf.asdf', '$2y$10$oEr685cXTzyOQvbTiW0B6eJpAJa.ZvekxFBDmQip9tD4UnZzTn2l6', FALSE)
+-- 	("user1", "user1email@closeddoor.net", "pass", 0),
+-- 	("user2", "user2email@closeddoor.net", "p@ss", 0)	
 -- ;
 
--- INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUES
--- 	(NULL, NOW(), 'Main', 'The central forum of the website.'),
--- 	(1, NOW(), 'Subforum 1', 'A subforum of the Main forum.'),
--- 	(1, NOW(), 'Subforum 2', 'Another subforum of the Main forum.'),
--- 	(3, NOW(), 'Second-Level Forum', 'A Subforum of a subforum (Subforum 2).')
--- ;
 
 -- INSERT INTO Threads(ForumID, UpdateTime, Title) VALUES
 -- 	(1, NOW(), "The first thread"),
--- 	(1, NOW(), "The second thread"),
--- 	(2, NOW(), "A thread in a subforum"),
--- 	(1, NOW(), "A very very very very very very very very very very long title")
+-- 	(2, NOW(), "The second thread")
 -- ;
 
 -- INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUES
--- 	(2, 1, NOW(), "This is the content of a comment."),
--- 	(1, 1, NOW(), "This is another comment."),
--- 	(1, 2, NOW(), "This is a comment in thread 2"),
--- 	(1, 3, NOW(), "This is a comment in thread 3"),
--- 	(1, 4, NOW(), "This is a comment in thread 4")
+-- 	(2, 1, NOW(), "This is a comment."),
+-- 	(1, 1, NOW(), "This is another comment.")
 -- ;
