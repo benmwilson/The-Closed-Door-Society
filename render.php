@@ -13,7 +13,11 @@ function displayThreadTitle($id)
     $forum = getForumByID($id);
     // output the title as header
     echo "<h2 id='titleText'><a id='titleText' href='" . $_SERVER['HTTP_REFERER'] . "'><<<   </a>" . $forum[3] . "</h2>";
-    echo "<br>";
+    echo "<div class=\"content-row\">";
+    echo "<div class='content-preview'>";
+    echo "<h4>".$forum[4]."</h4>";
+    echo "</div>";
+    echo "</div>";
 }
 
 function displayHeader(){
