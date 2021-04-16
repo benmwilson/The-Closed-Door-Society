@@ -25,6 +25,7 @@ $displayImg = $db->prepare("SELECT Image FROM Images ORDER BY");
 $insertNews = $db->prepare("INSERT INTO News(UpdateTime, Title, Content) VALUE ( NOW(), ?, ?);");
 $getNews = $db->prepare("SELECT * FROM News ORDER BY ID DESC LIMIT 1;");
 
+
 // Forum related
 $forumQuery = $db->prepare("SELECT * FROM Forums WHERE Parent = ? ORDER BY UpdateTime DESC;");
 $forumIDQuery = $db->prepare("SELECT * FROM Forums WHERE ID = ?");
@@ -430,28 +431,18 @@ function insertComment($posterID, $threadID, $content)
 
 function addNews($title, $content)
 {
-	global $insertNews;
+	global $insertNews, $getNews;
 
 	$insertNews->bind_param("ss", $title, $content);
 	$insertNews->execute();
-	$news = $insertNews->get_result()->fetch_row();
+
+	$getNews->execute();
+	$news = $getNews->get_result()->fetch_row();
 
 	$newsID = $news[0];
-	$newsImg = $_FILES['newsimg'];
 
-	if ($newsImg['size'] > 10000000) {
-		// error
-		die();
-	}
-	if ($newsImg['type'] != "image/png") {
-		// error
-		die();
-	}
 
-	$fileToMove = $newsImg['tmp_name'];
-	move_uploaded_file($fileToMove, "img/news_$newsID.png");
-	die();
-	
+	return $newsID;
 }
 
 function displayNews()
@@ -470,10 +461,15 @@ function displayNews()
 		//$newsID = $newsRow[0];
 		$newsTitle = $newsRow[2];
 		$newsContent = $newsRow[3];
+		$newsID = $newsRow[0];
+		$newsTime = $newsRow[1];
 		//$newsImg = $newsRow[4];
 
-		echo "<h3>$newsTitle</h3>";
+		echo "<h3>$newsTitle posted at ". substr($newsTime, 10, 6);"</h3>";
 		echo "<p>$newsContent</p>";
+		echo '<br>';
+		echo "<img width='200' height='200' src=\"img/news_$newsID.png\">";
+		echo '<br>';
 	}
 }
 

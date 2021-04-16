@@ -4,11 +4,11 @@ session_start();
 
 // This page can only be viewed if no user is logged in
 
-if (isset($_SESSION['userid'])) {
-    $userID = $_SESSION['userid'];
-    header("Location: profile.php?id=$userID");
-    die();
-}
+// if (isset($_SESSION['userid'])) {
+//     $userID = $_SESSION['userid'];
+//     header("Location: profile.php?id=$userID");
+//     die();
+// }
 
 include_once 'database.php';
 include_once 'render.php';
@@ -48,31 +48,25 @@ include_once 'render.php';
 
         <div class="content">
 
-            <h2>Sign Up To The Closed Door Society</h2>
-            <form id="registration-form" action="newuser.php" method="POST" enctype="multipart/form-data">
+            <h2>Add News</h2>
+            <form id="news-form" action="newnews.php" method="POST" enctype="multipart/form-data">
                 <table>
                     <tr>
                         <h4>
-                            <td><label for="username">Username:</label></td>
-                            <td><input type="text" name="username" id="username" maxlength="64" required></td>
+                            <td><label for="title">News Title:</label></td>
+                            <td><input type="text" name="title" id="title" maxlength="20"></td>
                         </h4>
                     </tr>
                     <tr>
                         <h4>
-                            <td><label for="email">Email:</label></td>
-                            <td><input type="email" name="email" id="email" required></td>
+                            <td><label for="content">News Content:</label></td>
+                            <td><textarea name="content" rows="10" cols="30" type="text" name="content" id="content" maxlength="150"></textarea></td>
                         </h4>
                     </tr>
                     <tr>
                         <h4>
-                            <td><label for="password">Password:</label></td>
-                            <td><input type="password" name="password" id="password" required></td>
-                        </h4>
-                    </tr>
-                    <tr>
-                        <h4>
-                            <td><label for="userimg">User Image:</label></td>
-                            <td><input type="file" id="userimg" name="userimg" accept="image/png"></td>
+                            <td><label for="newsimg">News Image:</label></td>
+                            <td><input type="file" id="newsimg" name="newsimg" accept="image/png"></td>
                         </h4>
                     <tr>
                         <h4>
@@ -85,8 +79,12 @@ include_once 'render.php';
         </div>
 
         <div class="sidebar">
-			<?php displayNews(); ?>
-		</div>
+            <?php displayNews(); ?>
+            <br>
+            <?php displayRecentComments(); ?>
+            <br>
+            <?php displayHotComments(); ?>
+        </div>
 
     </div>
 
