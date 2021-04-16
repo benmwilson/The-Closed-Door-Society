@@ -32,19 +32,9 @@ if ($userImg['type'] != "image/png") {
 $rval = insertUser($username, $password, $email);
 
 if ($rval > 0) {
-
-	// Insert image into DB - kinda works....
-
-
-	$file = addslashes(file_get_contents($_FILES["userimg"]["tmp_name"])); 
-	$query = "INSERT INTO Images(Image) VALUES ('$file')";  
-      if(mysqli_query($db, $query))  
-      {  
-           echo '<script>alert("Image Inserted into Database")</script>';  
-      }  
-
-
-	// imgInsert($file);
+	$userID = $_SESSION['userid'];
+	$fileToMove = $userImg['tmp_name'];
+	move_uploaded_file($fileToMove, "img/profile_$userID.png");
 	header("Location: profile.php?ID=$userID");
 	die();
 } else {

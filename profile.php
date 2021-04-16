@@ -31,23 +31,27 @@ include_once 'render.php';
 
 		<div class="content">
 
-		<?php
+			<?php
 
 			// Only display profile if signed in, else redirect to signup page
 
-					if(isset($_GET['id']))
-						$userID = $_GET['id'];
-					else if(isset($_SESSION['userid']))
-						$userID = $_SESSION['userid'];
-					else {
-						die();
-					}
-					userProfile($userID);
-				?>
+			if (isset($_GET['id']))
+				$userID = $_GET['id'];
+			else if (isset($_SESSION['userid']))
+				$userID = $_SESSION['userid'];
+			else {
+				die();
+			}
+			userProfile($userID);
+			?>
 
 		</div>
 		<div class="sidebar">
 			<?php displayNews(); ?>
+			<br>
+			<?php displayRecentComments(); ?>
+			<br>
+			<?php displayHotComments(); ?>
 		</div>
 
 	</div>

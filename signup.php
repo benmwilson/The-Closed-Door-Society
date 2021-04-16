@@ -20,6 +20,13 @@ include_once 'render.php';
 
 <head>
     <title>TCDS</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof jQuery == 'undefined') {
+            document.write(unescape("%3Cscript src='/js/jquery-3.6.0.min.js' type='text/javascript'%3E%3C/script%3E"));
+        }
+    </script>
+    <script src="./js/validation.js"></script>
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />
@@ -42,24 +49,24 @@ include_once 'render.php';
         <div class="content">
 
             <h2>Sign Up To The Closed Door Society</h2>
-            <form action="newuser.php" method="POST" enctype="multipart/form-data">
+            <form id="registration-form" action="newuser.php" method="POST" enctype="multipart/form-data">
                 <table>
                     <tr>
                         <h4>
                             <td><label for="username">Username:</label></td>
-                            <td><input type="text" name="username" id="username" maxlength="64" required></td>
+                            <td><input type="text" name="username" id="username" maxlength="64"></td>
                         </h4>
                     </tr>
                     <tr>
                         <h4>
                             <td><label for="email">Email:</label></td>
-                            <td><input type="email" name="email" id="email" required></td>
+                            <td><input type="email" name="email" id="email"></td>
                         </h4>
                     </tr>
                     <tr>
                         <h4>
                             <td><label for="password">Password:</label></td>
-                            <td><input type="password" name="password" id="password" required></td>
+                            <td><input type="password" name="password" id="password"></td>
                         </h4>
                     </tr>
                     <tr>
@@ -78,8 +85,12 @@ include_once 'render.php';
         </div>
 
         <div class="sidebar">
-			<?php displayNews(); ?>
-		</div>
+            <?php displayNews(); ?>
+            <br>
+            <?php displayRecentComments(); ?>
+            <br>
+            <?php displayHotComments(); ?>
+        </div>
 
     </div>
 

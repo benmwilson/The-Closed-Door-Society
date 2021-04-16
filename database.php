@@ -22,7 +22,7 @@ $imgInsert = $db->prepare("INSERT INTO Images(Image) VALUE (?);");
 $displayImg = $db->prepare("SELECT Image FROM Images ORDER BY");
 
 // News related
-$insertNews = $db->prepare("INSERT INTO News(UpdateTime, Title, Content, Img) VALUE ( NOW(), ?, ?, ?);");
+$insertNews = $db->prepare("INSERT INTO News(UpdateTime, Title, Content) VALUE ( NOW(), ?, ?);");
 $getNews = $db->prepare("SELECT * FROM News ORDER BY ID DESC LIMIT 1;");
 
 // Forum related
@@ -42,15 +42,18 @@ $commentQueryByUser = $db->prepare("SELECT * FROM Comments WHERE PosterID = ? OR
 $commentInsert = $db->prepare("INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUE (?, ?, NOW(), ?);");
 
 // Like related
-// $increaseLike = $db->prepare("UPDATE Comments SET Likes = Likes + 1 WHERE id = $commentID");
-// $decreaseLike = $db->prepare("UPDATE Comments SET Likes = Likes - 1 WHERE id = $commentID");
-
+$increaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes + 1 WHERE id = ?");
+$decreaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes - 1 WHERE id = ?");
+$addLikeToDB = $db->prepare("INSERT INTO Likes(UpdateTime, UserID, CommentID) VALUE (NOW(), ?, ?);");
+$removeLikeFromDB = $db->prepare("DELETE FROM Likes WHERE UserID=? AND CommentID=?;");
 $hasLikedQuery = $db->prepare("SELECT * FROM Likes WHERE UserID=? AND CommentID=?;");
-
-$addLikeToComment = $db->prepare("INSERT INTO Likes(UpdateTime, UserID, CommentID) VALUE (?, ?, NOW(), ?);");
-$removeLikeFromComment = $db->prepare("INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUE (?, ?, NOW(), ?);");
 $getLikesOfComment = $db->prepare("SELECT likes FROM Comments WHERE ID = ? ;");
 
+// Recent comment related
+$getRecentComments = $db->prepare("SELECT * FROM Comments ORDER BY ID DESC LIMIT 5;");
+
+// Hot thread related
+$getHotComments = $db->prepare("SELECT * FROM Comments ORDER BY Likes DESC LIMIT 5;");
 
 // Functions to do shit and display shit
 
@@ -221,6 +224,7 @@ function userProfile($userID)
 		echo "<h2>$username's Profile</h2>";
 		echo "<div class=\"content-row\">";
 		echo "<div class=\"profile-pic\">";
+		echo "<img class=\"profile-pic-large\" src=\"img/profile_$userID.png\">";
 		echo "</div>";
 		echo "<div class=\"profile-desc\">";
 		echo "<p>User Description Here</p>";
@@ -299,11 +303,10 @@ function listComments($threadID)
 
 		echo "<br>";
 		echo "<fieldset class='comment'>";
-		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/$posterID.png\"></a>";
-
-		echo "<p>CommentID: $commentId</p>";
-
+		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/profile_$posterID.png\"></a>";
+		echo "<br>";
 		displayLikeBar($commentId);
+		echo "<br>";
 
 		echo "<legend>[$username at $commentTime]</legend>";
 		echo "<p>$commentData</p>";
@@ -399,30 +402,56 @@ function insertComment($posterID, $threadID, $content)
 	$forumUpdateTime->execute();
 }
 
-// Insert an Image into the DB
+// // Insert an Image into the DB
 
-function imgInsert($file)
+// function imgInsert($file)
+// {
+// 	global $imgInsert;
+
+// 	$imgInsert->bind_param("b", $file);
+// 	if ($imgInsert->execute()) {
+// 		echo '<script>alert("Image Inserted into DB!")</script>';
+// 	} else {
+// 		echo '<script>alert("Image Insert Failed!")</script>';
+// 	}
+// }
+
+// function displayImg($imgID)
+// {
+
+// 	global $displayImg;
+
+// 	$displayImg->bind_param("i", $imgID);
+
+// 	$img = $displayImg->get_result();
+
+// 	echo '<img src="data:image/jpeg;base64,' . base64_encode($img) . '"/>  ';
+// }
+
+function addNews($title, $content)
 {
-	global $imgInsert;
+	global $insertNews;
 
-	$imgInsert->bind_param("b", $file);
-	if ($imgInsert->execute()) {
-		echo '<script>alert("Image Inserted into DB!")</script>';
-	} else {
-		echo '<script>alert("Image Insert Failed!")</script>';
+	$insertNews->bind_param("ss", $title, $content);
+	$insertNews->execute();
+	$news = $insertNews->get_result()->fetch_row();
+
+	$newsID = $news[0];
+	$newsImg = $_FILES['newsimg'];
+
+	if ($newsImg['size'] > 10000000) {
+		// error
+		die();
 	}
-}
+	if ($newsImg['type'] != "image/png") {
+		// error
+		die();
+	}
 
-function displayImg($imgID)
-{
-
-	global $displayImg;
-
-	$displayImg->bind_param("i", $imgID);
-
-	$img = $displayImg->get_result();
-
-	echo '<img src="data:image/jpeg;base64,' . base64_encode($img) . '"/>  ';
+	$fileToMove = $newsImg['tmp_name'];
+	move_uploaded_file($fileToMove, "img/news_$newsID.png");
+	die();
+	
 }
 
 function displayNews()
@@ -448,6 +477,72 @@ function displayNews()
 	}
 }
 
+function displayRecentComments()
+{
+
+	global $getRecentComments;
+
+	$getRecentComments->execute();
+	$recentComments = $getRecentComments->get_result();
+
+	echo "<h2>Recent Activity</h2>";
+	echo '<br>';
+	echo "<table>";
+	echo "<tr>";
+	echo '<th>Poster</th>';
+	echo '<th>Content</th>';
+	echo '<th>Time</th>';
+	echo "</tr>";
+
+	while ($recentCommentsRow = $recentComments->fetch_row()) {
+
+		$poster = getUserByID($recentCommentsRow[1]);
+		$username = $poster[1];
+		$commentContent = $recentCommentsRow[4];
+		$dateTime = substr($recentCommentsRow[3], 10, 6);
+
+		echo "<tr>";
+		echo "<td>$username</td>";
+		echo "<td style='word-break:break-all;'>$commentContent</td>";
+		echo "<td>$dateTime</td>";
+		echo "</tr>";
+	}
+	echo "</table>";
+}
+
+function displayHotComments()
+{
+
+	global $getHotComments;
+
+	$getHotComments->execute();
+	$hotComments = $getHotComments->get_result();
+
+	echo "<h2>Hot Comments</h2>";
+	echo '<br>';
+	echo "<table>";
+	echo "<tr>";
+	echo '<th>Poster</th>';
+	echo '<th>Content</th>';
+	echo '<th>Likes</th>';
+	echo "</tr>";
+
+	while ($hotCommentsRow = $hotComments->fetch_row()) {
+
+		$poster = getUserByID($hotCommentsRow[1]);
+		$username = $poster[1];
+		$commentContent = $hotCommentsRow[4];
+		$likes = $hotCommentsRow[5];
+
+		echo "<tr>";
+		echo "<td>$username</td>";
+		echo "<td style='word-break:break-all;'>$commentContent</td>";
+		echo "<td>$likes</td>";
+		echo "</tr>";
+	}
+	echo "</table>";
+}
+
 function displayLikeBar($commentID)
 {
 	global $hasLikedQuery;
@@ -467,8 +562,11 @@ function displayLikeBar($commentID)
 
 		// If they have, show red heart
 		if ($hasLiked->num_rows > 0) {
+			//echo '<a onclick="increaseLike($commentID, $userID);"><img src= "img\Heart-icon.png" width="20" height="20></a>';
 
-			echo '<img src="img\Heart-icon.png" width="20" height="20">';
+			echo "<a href='#' onclick='decreaseLike($commentID, $userID);''><img src='img\Heart-icon.png' width='20' height='20'></a>";
+
+			// echo '<img src="img\Heart-icon.png" width="20" height="20">';
 			getLikes($commentID);
 		} else {
 			// If they haven't show empty heart
@@ -491,14 +589,26 @@ function getLikes($commentID)
 	echo "<p>Likes: $likes[0]</p>";
 }
 
-function increaseLike($commentID){
-	
+function increaseLike($commentID, $userID)
+{
 
+	global $addLikeToDB, $increaseLikeOnComment;
 
+	$addLikeToDB->bind_param("ii", $userID, $commentID);
+	$addLikeToDB->execute();
+
+	$increaseLikeOnComment->bind_param("i", $commentID);
+	$increaseLikeOnComment->execute();
 }
 
-function decreaseLike($commentID){
+function decreaseLike($commentID, $userID)
+{
 
+	global $removeLikeFromDB, $decreaseLikeOnComment;
 
-	
+	$removeLikeFromDB->bind_param("ii", $userID, $commentID);
+	$removeLikeFromDB->execute();
+
+	$decreaseLikeOnComment->bind_param("i", $commentID);
+	$decreaseLikeOnComment->execute();
 }

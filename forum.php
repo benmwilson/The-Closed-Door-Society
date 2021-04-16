@@ -28,18 +28,22 @@ include_once 'render.php';
 
     <div class="main">
 
-        
+
         <div class="content">
-            
+
             <!-- List forums/threads here, use function from database.php -->
             <?php displayThreadTitle($_GET['id']) ?>
             <?php listThreads($_GET['id']) ?>
-            
+
         </div>
-        
+
         <div class="sidebar">
-			<?php displayNews(); ?>
-		</div>
+            <?php displayNews(); ?>
+            <br>
+            <?php displayRecentComments(); ?>
+            <br>
+            <?php displayHotComments(); ?>
+        </div>
     </div>
 
     <div class="footer">

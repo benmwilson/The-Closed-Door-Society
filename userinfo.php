@@ -4,12 +4,12 @@
 	
 	function notLoggedInHeader() {
 		$requestURI = $_SERVER['REQUEST_URI'];
-		echo "<form action=\"login.php\" method=\"POST\">";
+		echo "<form id = \"userinfo\" action=\"login.php\" method=\"POST\">";
 		echo "<input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Username\">";
 		echo "<input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Password\">";
 		echo "<input type=\"submit\" value=\"Login\">";
 		echo "<input type=\"hidden\" id=\"redirect\" name=\"redirect\" value=\"$requestURI\">";
-		echo "<a href=\"signup.php\">Sign Up</a>";
+		echo "<a id = \"signup\" href=\"signup.php\">Sign Up</a>";
 		echo "</form>";
 	}
 
@@ -25,7 +25,7 @@
 			$username = $user[1];
 			
 			echo "<a href=\"profile.php?id=$userID\">";
-			echo "<img class=\"profile-pic\" src=\"img/$userID.png\">";
+			echo "<img class=\"profile-pic\" src=\"img/profile_$userID.png\">";
 			echo "</a>";
 			echo "<h3>";
 			echo "<a href=\"profile.php?id=$userID\">$username</a>";
