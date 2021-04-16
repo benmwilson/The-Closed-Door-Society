@@ -62,6 +62,7 @@ CREATE TABLE Comments(
 	ThreadID INT NOT NULL,
 	UpdateTime DATETIME NOT NULL,
 	Content TEXT NOT NULL,
+	Likes INT NOT NULL DEFAULT 1,
 	
 	PRIMARY KEY (ID),
 	FOREIGN KEY (PosterID) REFERENCES Users(ID),
@@ -94,16 +95,17 @@ CREATE TABLE News(
 	
 );
 
-/*CREATE TABLE UserComments(
+CREATE TABLE Likes(
 
+	ID INT NOT NULL AUTO_INCREMENT,
+	UpdateTime DATETIME NOT NULL,
 	UserID INT NOT NULL,
 	CommentID INT NOT NULL,
 	
-	PRIMARY KEY (UserID, CommentID),
-	FOREIGN KEY (UserID) REFERENCES Users(ID),
-	FOREIGN KEY (CommentID) REFERENCES Comments(ID)
-
-);*/
+	PRIMARY KEY (ID),
+	INDEX (UpdateTime)
+	
+);
 
 -- Populate Tables
 

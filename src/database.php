@@ -1,5 +1,7 @@
 <?php
 
+include_once 'render.php';
+
 // DB Setup
 
 $dbuser = 'root';
@@ -39,6 +41,15 @@ $commentQueryByThread = $db->prepare("SELECT * FROM Comments WHERE ThreadID = ? 
 $commentQueryByUser = $db->prepare("SELECT * FROM Comments WHERE PosterID = ? ORDER BY UpdateTime DESC LIMIT ?;");
 $commentInsert = $db->prepare("INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUE (?, ?, NOW(), ?);");
 
+// Like related
+// $increaseLike = $db->prepare("UPDATE Comments SET Likes = Likes + 1 WHERE id = $commentID");
+// $decreaseLike = $db->prepare("UPDATE Comments SET Likes = Likes - 1 WHERE id = $commentID");
+
+$hasLikedQuery = $db->prepare("SELECT * FROM Likes WHERE UserID=? AND CommentID=?;");
+
+$addLikeToComment = $db->prepare("INSERT INTO Likes(UpdateTime, UserID, CommentID) VALUE (?, ?, NOW(), ?);");
+$removeLikeFromComment = $db->prepare("INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUE (?, ?, NOW(), ?);");
+$getLikesOfComment = $db->prepare("SELECT likes FROM Comments WHERE ID = ? ;");
 
 
 // Functions to do shit and display shit
@@ -287,8 +298,13 @@ function listComments($threadID)
 		$username = $poster[1];
 
 		echo "<br>";
-		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/$posterID.png\"></a>";
 		echo "<fieldset class='comment'>";
+		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/$posterID.png\"></a>";
+
+		echo "<p>CommentID: $commentId</p>";
+
+		displayLikeBar($commentId);
+
 		echo "<legend>[$username at $commentTime]</legend>";
 		echo "<p>$commentData</p>";
 		echo "</fieldset>";
@@ -430,4 +446,59 @@ function displayNews()
 		echo "<h3>$newsTitle</h3>";
 		echo "<p>$newsContent</p>";
 	}
+}
+
+function displayLikeBar($commentID)
+{
+	global $hasLikedQuery;
+
+
+	if ($_SESSION['userid'] != null) {
+
+		$userID = $_SESSION['userid'];
+
+
+		$hasLikedQuery->bind_param("ii", $userID, $commentID);
+		$hasLikedQuery->execute();
+
+		$hasLiked = $hasLikedQuery->get_result();
+
+
+
+		// If they have, show red heart
+		if ($hasLiked->num_rows > 0) {
+
+			echo '<img src="img\Heart-icon.png" width="20" height="20">';
+			getLikes($commentID);
+		} else {
+			// If they haven't show empty heart
+			echo '<img src="img\heart-outline.png" width="20" height="20">';
+			getLikes($commentID);
+		}
+	} else {
+		getLikes($commentID);
+	}
+}
+
+function getLikes($commentID)
+{
+	global $getLikesOfComment;
+
+	$getLikesOfComment->bind_param("i", $commentID);
+	$getLikesOfComment->execute();
+	$likes = $getLikesOfComment->get_result()->fetch_row();
+
+	echo "<p>Likes: $likes[0]</p>";
+}
+
+function increaseLike($commentID){
+	
+
+
+}
+
+function decreaseLike($commentID){
+
+
+	
 }
