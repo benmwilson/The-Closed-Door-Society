@@ -16,6 +16,7 @@ $usernameQuery = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
 $userIDQuery = $db->prepare("SELECT * FROM Users WHERE ID = ?;");
 $userInsert = $db->prepare("INSERT INTO Users(Username, Email, Password, Administrator) VALUE (?, ?, ?, FALSE);");
 $usernameQueryyy = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
+$getAllUsers = $db->prepare("SELECT * FROM Users;");
 
 // Image related
 $imgInsert = $db->prepare("INSERT INTO Images(Image) VALUE (?);");
@@ -30,6 +31,7 @@ $getNews = $db->prepare("SELECT * FROM News ORDER BY ID DESC LIMIT 1;");
 $forumQuery = $db->prepare("SELECT * FROM Forums WHERE Parent = ? ORDER BY UpdateTime DESC;");
 $forumIDQuery = $db->prepare("SELECT * FROM Forums WHERE ID = ?");
 $forumUpdateTime = $db->prepare("UPDATE Forums SET UpdateTime = NOW() WHERE ID = ?;");
+$forumInsert = $db->prepare("INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUE (1, NOW(), ?, ?);");
 
 // Thread related
 $threadQueryByForum = $db->prepare("SELECT * FROM Threads WHERE ForumID = ? ORDER BY UpdateTime DESC;");
@@ -56,7 +58,159 @@ $getRecentComments = $db->prepare("SELECT * FROM Comments ORDER BY ID DESC LIMIT
 // Hot thread related
 $getHotComments = $db->prepare("SELECT * FROM Comments ORDER BY Likes DESC LIMIT 5;");
 
+// Search queries by name
+$getForumsBySearch = $db->prepare("SELECT * FROM Forums WHERE Name LIKE ?;");
+$getThreadsBySearch = $db->prepare("SELECT * FROM threads WHERE Title LIKE ?;");
+$getUsersBySearch = $db->prepare("SELECT * FROM Users WHERE Username LIKE ?;");
+
 // Functions to do shit and display shit
+
+function listSearchResults($type, $query){
+
+	$search = "%$query%";
+	global $getThreadsBySearch;
+	global $getForumsBySearch;
+	global $getUsersBySearch;
+
+	if($type == 'forum'){
+		$getForumsBySearch->bind_param("s", $search);
+		$getForumsBySearch->execute();
+		$results = mysqli_stmt_get_result($getForumsBySearch);
+
+		if ($results) {
+			echo "<h2>Results</h2>";
+		}else{
+			echo "No results to show...";
+		}
+
+		while ($resultsRow = mysqli_fetch_array($results)){
+			$forumID = $resultsRow[0];
+			$forumName = $resultsRow[3];
+			$forumDesc = $resultsRow[4];
+
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
+			echo "<h4><a href=\"forum.php?id=$forumID\">$forumName</a></h4>";
+			echo "</div>";
+			echo "<div class=\"post-preview\">";
+			echo "<p>$forumDesc</p>";
+			echo "</div>";
+			echo "</div>";
+		}
+		$results->close();
+	}else if($type == 'thread'){
+		$getThreadsBySearch->bind_param("s", $search);
+		$getThreadsBySearch->execute();
+		$results = mysqli_stmt_get_result($getThreadsBySearch);
+
+		if ($results) {
+			echo "<h2>Results</h2>";
+		}else{
+			echo "No results to show...";
+		}
+
+		while ($resultsRow = mysqli_fetch_array($results)){
+			$threadID = $resultsRow[0];
+			$threadTitle = $resultsRow[3];
+			$forumId = $resultsRow[1];
+			$forum = getForumByID($forumId);
+
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
+			echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
+			echo "</div>";
+			echo "<div class=\"post-preview\">";
+			echo "<p>From forum: ".$forum[3]."</p>";
+			echo "</div>";
+			echo "</div>";
+		}
+		$results->close();
+	}else if($type == 'user'){
+		$getUsersBySearch->bind_param("s", $search);
+		$getUsersBySearch->execute();
+		$results = mysqli_stmt_get_result($getUsersBySearch);
+
+		if ($results) {
+			echo "<h2>Results</h2>";
+		}else{
+			echo "No results to show...";
+		}
+
+		while ($resultsRow = mysqli_fetch_array($results)){
+			$userId = $resultsRow[0];
+			$userName = $resultsRow[1];
+			$userDesc = $resultsRow[4];
+
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
+			echo "<h4><a href=\"profile.php?id=$userId\">$userName</a></h4>";
+			echo "</div>";
+			echo "<div class=\"post-preview\">";
+			echo "<p>$userDesc</p>";
+			echo "</div>";
+			echo "</div>";
+		}
+		$results->close();
+	}else{
+		$output = "Unable to comprehend the search parameters";
+		exit($output);
+	}
+}
+
+// returns if the logged in user is an admin
+function isAdmin(){
+	// check if the session for user id is stored (logged in)
+	if(isset($_SESSION['userid'])){
+		// store the variable for user id
+		$id = $_SESSION['userid'];
+		// pull user from that id
+		$user = getUserByID($id);
+
+		// check if the user is an admin $user[5] == 1;
+		if($user[5] == 1){
+			// user is an admin
+			return true;
+		}else{
+			return false;
+		}
+	}else{
+		return false;
+	}
+}
+
+// function to list all users for an admin
+function listUsersForAdmin($query){
+	
+	$search = "%$query%";
+	global $getUsersBySearch;
+
+	$getUsersBySearch->bind_param("s", $search);
+	$getUsersBySearch->execute();
+	$results = mysqli_stmt_get_result($getUsersBySearch);
+	if ($results) {
+	}else{
+		echo "<h2>No results to show...</2>";
+	}
+
+	while ($resultsRow = mysqli_fetch_array($results)){
+		$userId = $resultsRow[0];
+		$userName = $resultsRow[1];
+		$userDesc = $resultsRow[4];
+
+		echo "<div class=\"content-row\">";
+		echo "<div class=\"post-title\">";
+		echo "<h4><a href=\"profile.php?id=$userId\">$userName</a></h4>";
+		echo "</div>";
+		echo "<div class=\"post-preview\">";
+		echo "<p>Description: $userDesc</p>";
+		echo "</div>";
+		echo "<div>";
+		echo "<a href='' style='color:red'>BAN</a>";
+		echo "</div>";
+		echo "</div>";
+	}
+	$results->close();
+}
 
 // Get user by username
 
@@ -241,8 +395,6 @@ function userProfile($userID)
 		$comments = $commentQueryByUser->get_result();
 
 		echo "<h2>$username's Post Activity</h2>";
-		echo "<div class=\"content-row\">";
-		echo "<div class=\"post-title\">";
 
 
 		while ($comment = $comments->fetch_row()) {
@@ -255,14 +407,15 @@ function userProfile($userID)
 			$threadTitle = $thread[3];
 			$commentContent = $comment[4];
 
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
 			echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
 			echo "</div>";
 			echo "<div class=\"post-preview\">";
 			echo "<p>$commentContent</p>";
+			echo "</div>";
+			echo "</div>";
 		}
-
-		echo "</div>";
-		echo "</div>";
 	}
 }
 
@@ -376,6 +529,17 @@ function insertThread($posterID, $forumID, $title, $content)
 
 	$forumUpdateTime->bind_param("i", $forumID);
 	$forumUpdateTime->execute();
+}
+
+function insertForum($forumName, $forumDesc){
+	global $forumInsert;
+
+	// Some modest input sanitation
+	$title = strip_tags($forumName);
+	$forumDesc = strip_tags($forumDesc);
+
+	$forumInsert->bind_param("ss", $title, $forumDesc);
+	$forumInsert->execute();
 }
 
 // Insert a comment into the DB
@@ -544,7 +708,7 @@ function displayLikeBar($commentID)
 	global $hasLikedQuery;
 
 
-	if ($_SESSION['userid'] != null) {
+	if (isset($_SESSION['userid'])) {
 
 		$userID = $_SESSION['userid'];
 
