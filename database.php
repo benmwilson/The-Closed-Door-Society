@@ -16,19 +16,22 @@ $usernameQuery = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
 $userIDQuery = $db->prepare("SELECT * FROM Users WHERE ID = ?;");
 $userInsert = $db->prepare("INSERT INTO Users(Username, Email, Password, Administrator) VALUE (?, ?, ?, FALSE);");
 $usernameQueryyy = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
+$getAllUsers = $db->prepare("SELECT * FROM Users;");
 
 // Image related
 $imgInsert = $db->prepare("INSERT INTO Images(Image) VALUE (?);");
 $displayImg = $db->prepare("SELECT Image FROM Images ORDER BY");
 
 // News related
-$insertNews = $db->prepare("INSERT INTO News(UpdateTime, Title, Content, Img) VALUE ( NOW(), ?, ?, ?);");
+$insertNews = $db->prepare("INSERT INTO News(UpdateTime, Title, Content) VALUE ( NOW(), ?, ?);");
 $getNews = $db->prepare("SELECT * FROM News ORDER BY ID DESC LIMIT 1;");
+
 
 // Forum related
 $forumQuery = $db->prepare("SELECT * FROM Forums WHERE Parent = ? ORDER BY UpdateTime DESC;");
 $forumIDQuery = $db->prepare("SELECT * FROM Forums WHERE ID = ?");
 $forumUpdateTime = $db->prepare("UPDATE Forums SET UpdateTime = NOW() WHERE ID = ?;");
+$forumInsert = $db->prepare("INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUE (1, NOW(), ?, ?);");
 
 // Thread related
 $threadQueryByForum = $db->prepare("SELECT * FROM Threads WHERE ForumID = ? ORDER BY UpdateTime DESC;");
@@ -42,17 +45,172 @@ $commentQueryByUser = $db->prepare("SELECT * FROM Comments WHERE PosterID = ? OR
 $commentInsert = $db->prepare("INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUE (?, ?, NOW(), ?);");
 
 // Like related
-// $increaseLike = $db->prepare("UPDATE Comments SET Likes = Likes + 1 WHERE id = $commentID");
-// $decreaseLike = $db->prepare("UPDATE Comments SET Likes = Likes - 1 WHERE id = $commentID");
-
+$increaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes + 1 WHERE id = ?");
+$decreaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes - 1 WHERE id = ?");
+$addLikeToDB = $db->prepare("INSERT INTO Likes(UpdateTime, UserID, CommentID) VALUE (NOW(), ?, ?);");
+$removeLikeFromDB = $db->prepare("DELETE FROM Likes WHERE UserID=? AND CommentID=?;");
 $hasLikedQuery = $db->prepare("SELECT * FROM Likes WHERE UserID=? AND CommentID=?;");
-
-$addLikeToComment = $db->prepare("INSERT INTO Likes(UpdateTime, UserID, CommentID) VALUE (?, ?, NOW(), ?);");
-$removeLikeFromComment = $db->prepare("INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUE (?, ?, NOW(), ?);");
 $getLikesOfComment = $db->prepare("SELECT likes FROM Comments WHERE ID = ? ;");
 
+// Recent comment related
+$getRecentComments = $db->prepare("SELECT * FROM Comments ORDER BY ID DESC LIMIT 5;");
+
+// Hot thread related
+$getHotComments = $db->prepare("SELECT * FROM Comments ORDER BY Likes DESC LIMIT 5;");
+
+// Search queries by name
+$getForumsBySearch = $db->prepare("SELECT * FROM Forums WHERE Name LIKE ?;");
+$getThreadsBySearch = $db->prepare("SELECT * FROM threads WHERE Title LIKE ?;");
+$getUsersBySearch = $db->prepare("SELECT * FROM Users WHERE Username LIKE ?;");
 
 // Functions to do shit and display shit
+
+function listSearchResults($type, $query){
+
+	$search = "%$query%";
+	global $getThreadsBySearch;
+	global $getForumsBySearch;
+	global $getUsersBySearch;
+
+	if($type == 'forum'){
+		$getForumsBySearch->bind_param("s", $search);
+		$getForumsBySearch->execute();
+		$results = mysqli_stmt_get_result($getForumsBySearch);
+
+		if ($results) {
+			echo "<h2>Results</h2>";
+		}else{
+			echo "No results to show...";
+		}
+
+		while ($resultsRow = mysqli_fetch_array($results)){
+			$forumID = $resultsRow[0];
+			$forumName = $resultsRow[3];
+			$forumDesc = $resultsRow[4];
+
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
+			echo "<h4><a href=\"forum.php?id=$forumID\">$forumName</a></h4>";
+			echo "</div>";
+			echo "<div class=\"post-preview\">";
+			echo "<p>$forumDesc</p>";
+			echo "</div>";
+			echo "</div>";
+		}
+		$results->close();
+	}else if($type == 'thread'){
+		$getThreadsBySearch->bind_param("s", $search);
+		$getThreadsBySearch->execute();
+		$results = mysqli_stmt_get_result($getThreadsBySearch);
+
+		if ($results) {
+			echo "<h2>Results</h2>";
+		}else{
+			echo "No results to show...";
+		}
+
+		while ($resultsRow = mysqli_fetch_array($results)){
+			$threadID = $resultsRow[0];
+			$threadTitle = $resultsRow[3];
+			$forumId = $resultsRow[1];
+			$forum = getForumByID($forumId);
+
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
+			echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
+			echo "</div>";
+			echo "<div class=\"post-preview\">";
+			echo "<p>From forum: ".$forum[3]."</p>";
+			echo "</div>";
+			echo "</div>";
+		}
+		$results->close();
+	}else if($type == 'user'){
+		$getUsersBySearch->bind_param("s", $search);
+		$getUsersBySearch->execute();
+		$results = mysqli_stmt_get_result($getUsersBySearch);
+
+		if ($results) {
+			echo "<h2>Results</h2>";
+		}else{
+			echo "No results to show...";
+		}
+
+		while ($resultsRow = mysqli_fetch_array($results)){
+			$userId = $resultsRow[0];
+			$userName = $resultsRow[1];
+			$userDesc = $resultsRow[4];
+
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
+			echo "<h4><a href=\"profile.php?id=$userId\">$userName</a></h4>";
+			echo "</div>";
+			echo "<div class=\"post-preview\">";
+			echo "<p>$userDesc</p>";
+			echo "</div>";
+			echo "</div>";
+		}
+		$results->close();
+	}else{
+		$output = "Unable to comprehend the search parameters";
+		exit($output);
+	}
+}
+
+// returns if the logged in user is an admin
+function isAdmin(){
+	// check if the session for user id is stored (logged in)
+	if(isset($_SESSION['userid'])){
+		// store the variable for user id
+		$id = $_SESSION['userid'];
+		// pull user from that id
+		$user = getUserByID($id);
+
+		// check if the user is an admin $user[5] == 1;
+		if($user[5] == 1){
+			// user is an admin
+			return true;
+		}else{
+			return false;
+		}
+	}else{
+		return false;
+	}
+}
+
+// function to list all users for an admin
+function listUsersForAdmin($query){
+	
+	$search = "%$query%";
+	global $getUsersBySearch;
+
+	$getUsersBySearch->bind_param("s", $search);
+	$getUsersBySearch->execute();
+	$results = mysqli_stmt_get_result($getUsersBySearch);
+	if ($results) {
+	}else{
+		echo "<h2>No results to show...</2>";
+	}
+
+	while ($resultsRow = mysqli_fetch_array($results)){
+		$userId = $resultsRow[0];
+		$userName = $resultsRow[1];
+		$userDesc = $resultsRow[4];
+
+		echo "<div class=\"content-row\">";
+		echo "<div class=\"post-title\">";
+		echo "<h4><a href=\"profile.php?id=$userId\">$userName</a></h4>";
+		echo "</div>";
+		echo "<div class=\"post-preview\">";
+		echo "<p>Description: $userDesc</p>";
+		echo "</div>";
+		echo "<div>";
+		echo "<a href='' style='color:red'>BAN</a>";
+		echo "</div>";
+		echo "</div>";
+	}
+	$results->close();
+}
 
 // Get user by username
 
@@ -221,6 +379,7 @@ function userProfile($userID)
 		echo "<h2>$username's Profile</h2>";
 		echo "<div class=\"content-row\">";
 		echo "<div class=\"profile-pic\">";
+		echo "<img class=\"profile-pic-large\" src=\"img/profile_$userID.png\">";
 		echo "</div>";
 		echo "<div class=\"profile-desc\">";
 		echo "<p>User Description Here</p>";
@@ -236,8 +395,6 @@ function userProfile($userID)
 		$comments = $commentQueryByUser->get_result();
 
 		echo "<h2>$username's Post Activity</h2>";
-		echo "<div class=\"content-row\">";
-		echo "<div class=\"post-title\">";
 
 
 		while ($comment = $comments->fetch_row()) {
@@ -250,14 +407,15 @@ function userProfile($userID)
 			$threadTitle = $thread[3];
 			$commentContent = $comment[4];
 
+			echo "<div class=\"content-row\">";
+			echo "<div class=\"post-title\">";
 			echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
 			echo "</div>";
 			echo "<div class=\"post-preview\">";
 			echo "<p>$commentContent</p>";
+			echo "</div>";
+			echo "</div>";
 		}
-
-		echo "</div>";
-		echo "</div>";
 	}
 }
 
@@ -299,11 +457,10 @@ function listComments($threadID)
 
 		echo "<br>";
 		echo "<fieldset class='comment'>";
-		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/$posterID.png\"></a>";
-
-		echo "<p>CommentID: $commentId</p>";
-
+		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/profile_$posterID.png\"></a>";
+		echo "<br>";
 		displayLikeBar($commentId);
+		echo "<br>";
 
 		echo "<legend>[$username at $commentTime]</legend>";
 		echo "<p>$commentData</p>";
@@ -374,6 +531,17 @@ function insertThread($posterID, $forumID, $title, $content)
 	$forumUpdateTime->execute();
 }
 
+function insertForum($forumName, $forumDesc){
+	global $forumInsert;
+
+	// Some modest input sanitation
+	$title = strip_tags($forumName);
+	$forumDesc = strip_tags($forumDesc);
+
+	$forumInsert->bind_param("ss", $title, $forumDesc);
+	$forumInsert->execute();
+}
+
 // Insert a comment into the DB
 
 function insertComment($posterID, $threadID, $content)
@@ -399,30 +567,46 @@ function insertComment($posterID, $threadID, $content)
 	$forumUpdateTime->execute();
 }
 
-// Insert an Image into the DB
+// // Insert an Image into the DB
 
-function imgInsert($file)
+// function imgInsert($file)
+// {
+// 	global $imgInsert;
+
+// 	$imgInsert->bind_param("b", $file);
+// 	if ($imgInsert->execute()) {
+// 		echo '<script>alert("Image Inserted into DB!")</script>';
+// 	} else {
+// 		echo '<script>alert("Image Insert Failed!")</script>';
+// 	}
+// }
+
+// function displayImg($imgID)
+// {
+
+// 	global $displayImg;
+
+// 	$displayImg->bind_param("i", $imgID);
+
+// 	$img = $displayImg->get_result();
+
+// 	echo '<img src="data:image/jpeg;base64,' . base64_encode($img) . '"/>  ';
+// }
+
+function addNews($title, $content)
 {
-	global $imgInsert;
+	global $insertNews, $getNews;
 
-	$imgInsert->bind_param("b", $file);
-	if ($imgInsert->execute()) {
-		echo '<script>alert("Image Inserted into DB!")</script>';
-	} else {
-		echo '<script>alert("Image Insert Failed!")</script>';
-	}
-}
+	$insertNews->bind_param("ss", $title, $content);
+	$insertNews->execute();
 
-function displayImg($imgID)
-{
+	$getNews->execute();
+	$news = $getNews->get_result()->fetch_row();
 
-	global $displayImg;
+	$newsID = $news[0];
 
-	$displayImg->bind_param("i", $imgID);
 
-	$img = $displayImg->get_result();
-
-	echo '<img src="data:image/jpeg;base64,' . base64_encode($img) . '"/>  ';
+	return $newsID;
 }
 
 function displayNews()
@@ -441,11 +625,82 @@ function displayNews()
 		//$newsID = $newsRow[0];
 		$newsTitle = $newsRow[2];
 		$newsContent = $newsRow[3];
+		$newsID = $newsRow[0];
+		$newsTime = $newsRow[1];
 		//$newsImg = $newsRow[4];
 
-		echo "<h3>$newsTitle</h3>";
+		echo "<h3>$newsTitle posted at ". substr($newsTime, 10, 6);"</h3>";
 		echo "<p>$newsContent</p>";
+		echo '<br>';
+		echo "<img width='200' height='200' src=\"img/news_$newsID.png\">";
+		echo '<br>';
 	}
+}
+
+function displayRecentComments()
+{
+
+	global $getRecentComments;
+
+	$getRecentComments->execute();
+	$recentComments = $getRecentComments->get_result();
+
+	echo "<h2>Recent Activity</h2>";
+	echo '<br>';
+	echo "<table>";
+	echo "<tr>";
+	echo '<th>Poster</th>';
+	echo '<th>Content</th>';
+	echo '<th>Time</th>';
+	echo "</tr>";
+
+	while ($recentCommentsRow = $recentComments->fetch_row()) {
+
+		$poster = getUserByID($recentCommentsRow[1]);
+		$username = $poster[1];
+		$commentContent = $recentCommentsRow[4];
+		$dateTime = substr($recentCommentsRow[3], 10, 6);
+
+		echo "<tr>";
+		echo "<td>$username</td>";
+		echo "<td style='word-break:break-all;'>$commentContent</td>";
+		echo "<td>$dateTime</td>";
+		echo "</tr>";
+	}
+	echo "</table>";
+}
+
+function displayHotComments()
+{
+
+	global $getHotComments;
+
+	$getHotComments->execute();
+	$hotComments = $getHotComments->get_result();
+
+	echo "<h2>Hot Comments</h2>";
+	echo '<br>';
+	echo "<table>";
+	echo "<tr>";
+	echo '<th>Poster</th>';
+	echo '<th>Content</th>';
+	echo '<th>Likes</th>';
+	echo "</tr>";
+
+	while ($hotCommentsRow = $hotComments->fetch_row()) {
+
+		$poster = getUserByID($hotCommentsRow[1]);
+		$username = $poster[1];
+		$commentContent = $hotCommentsRow[4];
+		$likes = $hotCommentsRow[5];
+
+		echo "<tr>";
+		echo "<td>$username</td>";
+		echo "<td style='word-break:break-all;'>$commentContent</td>";
+		echo "<td>$likes</td>";
+		echo "</tr>";
+	}
+	echo "</table>";
 }
 
 function displayLikeBar($commentID)
@@ -453,7 +708,7 @@ function displayLikeBar($commentID)
 	global $hasLikedQuery;
 
 
-	if ($_SESSION['userid'] != null) {
+	if (isset($_SESSION['userid'])) {
 
 		$userID = $_SESSION['userid'];
 
@@ -467,8 +722,11 @@ function displayLikeBar($commentID)
 
 		// If they have, show red heart
 		if ($hasLiked->num_rows > 0) {
+			//echo '<a onclick="increaseLike($commentID, $userID);"><img src= "img\Heart-icon.png" width="20" height="20></a>';
 
-			echo '<img src="img\Heart-icon.png" width="20" height="20">';
+			echo "<a href='#' onclick='decreaseLike($commentID, $userID);''><img src='img\Heart-icon.png' width='20' height='20'></a>";
+
+			// echo '<img src="img\Heart-icon.png" width="20" height="20">';
 			getLikes($commentID);
 		} else {
 			// If they haven't show empty heart
@@ -491,14 +749,26 @@ function getLikes($commentID)
 	echo "<p>Likes: $likes[0]</p>";
 }
 
-function increaseLike($commentID){
-	
+function increaseLike($commentID, $userID)
+{
 
+	global $addLikeToDB, $increaseLikeOnComment;
 
+	$addLikeToDB->bind_param("ii", $userID, $commentID);
+	$addLikeToDB->execute();
+
+	$increaseLikeOnComment->bind_param("i", $commentID);
+	$increaseLikeOnComment->execute();
 }
 
-function decreaseLike($commentID){
+function decreaseLike($commentID, $userID)
+{
 
+	global $removeLikeFromDB, $decreaseLikeOnComment;
 
-	
+	$removeLikeFromDB->bind_param("ii", $userID, $commentID);
+	$removeLikeFromDB->execute();
+
+	$decreaseLikeOnComment->bind_param("i", $commentID);
+	$decreaseLikeOnComment->execute();
 }

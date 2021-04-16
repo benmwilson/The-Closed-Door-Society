@@ -16,30 +16,26 @@ include_once 'render.php';
 
 <body>
 
-    <div class="header">
-        <div class="left-header">
-            <h1>The Closed Door Society</h1>
-            <nav>
-                <a class="header-nav" href="main.php">Home</a>
-            </nav>
-        </div>
-        <?php include 'userinfo.php'; ?>
-    </div>
+    <?php displayHeader(); ?>
 
     <div class="main">
 
-        
+
         <div class="content">
-            
+
             <!-- List forums/threads here, use function from database.php -->
             <?php displayThreadTitle($_GET['id']) ?>
             <?php listThreads($_GET['id']) ?>
-            
+
         </div>
-        
+
         <div class="sidebar">
-			<?php displayNews(); ?>
-		</div>
+            <?php displayNews(); ?>
+            <br>
+            <?php displayRecentComments(); ?>
+            <br>
+            <?php displayHotComments(); ?>
+        </div>
     </div>
 
     <div class="footer">

@@ -29,10 +29,32 @@ include_once 'render.php';
 
 
 		<div class="content">
+			<h2>Search</h2>
+            <form action='search.php'>
+            <label for='type'>Type: </label>
+            <select name='type' id='type'>
+                <option value='forum'>Forum</option>
+                <option value='thread'>Thread</option>
+                <option value='user'>User</option>
+            </select>
+            <label for='term'>Search: </label>
+            <input type='text' id='text' name='text'>
+            <input type='submit' value="Search">
+            </form>
+            <br>
 
-			<?php listForums(1); ?>
-
-			<?php listThreads(1); ?>
+            <?php 
+                if(isset($_GET['type']) && !isset($_GET['text'])){
+                    $type = $_GET['type'];
+                    listSearchResults($type, "");
+                }else if(isset($_GET['type']) && isset($_GET['type'])){
+                    $type = $_GET['type'];
+                    $text = $_GET['text'];
+                    listSearchResults($type, $text);
+                }else{
+                    "Nothing to display";
+                }
+            ?>
 
 		</div>
 
