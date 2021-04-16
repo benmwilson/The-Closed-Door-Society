@@ -33,16 +33,14 @@ include_once 'render.php';
         <div class="content">
 
             <!-- List comments here, use function from database.php -->
-            <?php displayThreadTitle($_GET['id'], $_SERVER['HTTP_REFERER']) ?>
+            <?php displayThreadTitle($_GET['id']) ?>
             <?php listComments($_GET['id']) ?>
         
         </div>
 
         <div class="sidebar">
-				<h2>Behind The Closed Doors</h2>
-				<p>Always watching</p>
-				<img src="img/logo.jpg" alt="" width="250" height="250">
-			</div>
+			<?php displayNews(1); ?>
+		</div>
 
     </div>
 

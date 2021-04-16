@@ -70,6 +70,30 @@ CREATE TABLE Comments(
 	
 );
 
+CREATE TABLE Images(
+
+	ID INT NOT NULL AUTO_INCREMENT,
+	UpdateTime DATETIME NOT NULL,
+	Image BLOB NOT NULL,
+	
+	PRIMARY KEY (ID),
+	INDEX (UpdateTime)
+	
+);
+
+CREATE TABLE News(
+
+	ID INT NOT NULL AUTO_INCREMENT,
+	UpdateTime DATETIME NOT NULL,
+	Title VARCHAR(56) NOT NULL,
+	Content TEXT NOT NULL,
+	Img BLOB NOT NULL,
+	
+	PRIMARY KEY (ID),
+	INDEX (UpdateTime)
+	
+);
+
 /*CREATE TABLE UserComments(
 
 	UserID INT NOT NULL,
@@ -83,11 +107,6 @@ CREATE TABLE Comments(
 
 -- Populate Tables
 
-INSERT INTO Users(Username, Email, Password, Administrator) VALUES
-	("user1", "user1email@closeddoor.net", "pass", 0),
-	("user2", "user2email@closeddoor.net", "p@ss", 0)	
-;
-
 INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUES
 	(NULL, NOW(), 'Main', 'Main Forum'),
 	(1, NOW(), 'World Domination Plans', 'Talk about how you will take over the world!'),
@@ -95,12 +114,20 @@ INSERT INTO Forums(Parent, UpdateTime, Name, Description) VALUES
 	(3, NOW(), 'Henchmen for Hire', 'A board to see out henchmen.')
 ;
 
-INSERT INTO Threads(ForumID, UpdateTime, Title) VALUES
-	(1, NOW(), "The first thread"),
-	(2, NOW(), "The second thread")
-;
+INSERT INTO News(UpdateTime, Title, Content) VALUES (NOW(), 'Title', 'Content');
 
-INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUES
-	(2, 1, NOW(), "This is a comment."),
-	(1, 1, NOW(), "This is another comment.")
-;
+-- INSERT INTO Users(Username, Email, Password, Administrator) VALUES
+-- 	("user1", "user1email@closeddoor.net", "pass", 0),
+-- 	("user2", "user2email@closeddoor.net", "p@ss", 0)	
+-- ;
+
+
+-- INSERT INTO Threads(ForumID, UpdateTime, Title) VALUES
+-- 	(1, NOW(), "The first thread"),
+-- 	(2, NOW(), "The second thread")
+-- ;
+
+-- INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUES
+-- 	(2, 1, NOW(), "This is a comment."),
+-- 	(1, 1, NOW(), "This is another comment.")
+-- ;

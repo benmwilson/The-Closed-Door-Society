@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once 'database.php';
+include_once 'render.php';
 ?>
 
 <!DOCTYPE html>
@@ -37,9 +38,7 @@ include_once 'database.php';
 		</div>
 
 		<div class="sidebar">
-			<h2>Behind The Closed Doors</h2>
-			<p>Always watching</p>
-			<img src="img/logo.jpg" alt="" width="250" height="250">
+			<?php displayNews(1); ?>
 		</div>
 	</div>
 

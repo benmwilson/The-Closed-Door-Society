@@ -11,6 +11,7 @@ if (isset($_SESSION['userid'])) {
 }
 
 include_once 'database.php';
+include_once 'render.php';
 
 ?>
 
@@ -77,10 +78,8 @@ include_once 'database.php';
         </div>
 
         <div class="sidebar">
-				<h2>Behind The Closed Doors</h2>
-				<p>Always watching</p>
-				<img src="img/logo.jpg" alt="" width="250" height="250">
-			</div>
+			<?php displayNews(1); ?>
+		</div>
 
     </div>
 

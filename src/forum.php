@@ -32,17 +32,14 @@ include_once 'render.php';
         <div class="content">
             
             <!-- List forums/threads here, use function from database.php -->
-            <?php displayThreadTitle($_GET['id'], 'main.php') ?>
-            <?php listForums($_GET['id']) ?>
+            <?php displayThreadTitle($_GET['id']) ?>
             <?php listThreads($_GET['id']) ?>
             
         </div>
         
         <div class="sidebar">
-            <h2>Behind The Closed Doors</h2>
-            <p>Always watching</p>
-            <img src="img/logo.jpg" alt="" width="250" height="250">
-        </div>
+			<?php displayNews(1); ?>
+		</div>
     </div>
 
     <div class="footer">

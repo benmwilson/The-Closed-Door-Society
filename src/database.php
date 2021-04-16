@@ -13,6 +13,15 @@ $db = new mysqli('localhost', $dbuser, $dbpass, $dbname);
 $usernameQuery = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
 $userIDQuery = $db->prepare("SELECT * FROM Users WHERE ID = ?;");
 $userInsert = $db->prepare("INSERT INTO Users(Username, Email, Password, Administrator) VALUE (?, ?, ?, FALSE);");
+$usernameQueryyy = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
+
+// Image related
+$imgInsert = $db->prepare("INSERT INTO Images(Image) VALUE (?);");
+$displayImg = $db->prepare("SELECT Image FROM Images WHERE ID = (?)");
+
+// News related
+$insertNews = $db->prepare("INSERT INTO News(UpdateTime, Title, Content, Img) VALUE ( NOW(), ?, ?, ?);");
+$getNews = $db->prepare("SELECT * FROM News WHERE ID = ?;");
 
 // Forum related
 $forumQuery = $db->prepare("SELECT * FROM Forums WHERE Parent = ? ORDER BY UpdateTime DESC;");
@@ -136,7 +145,7 @@ function listThreads($forumID)
 	$threadQueryByForum->execute();
 	$threads = $threadQueryByForum->get_result();
 
-	$amount = 10;
+	$amount = 1;
 	$commentQueryByThread->bind_param("ii", $threadID, $amount);
 
 	echo "<h2>Threads</h2>";
@@ -177,7 +186,7 @@ function listThreads($forumID)
 	}
 }
 
-// Echo the user profile 
+// Echo the user profile
 
 function userProfile($userID)
 {
@@ -185,56 +194,61 @@ function userProfile($userID)
 	global $commentQueryByUser, $threadQueryByThread;
 
 	$user = getUserByID($userID);
-	$username = $user[1];
 
-	echo "<h2>$username's Profile</h2>";
-	echo "<div class=\"content-row\">";
-	echo "<div class=\"profile-pic\">";
-	echo "<img class=\"profile-pic-large\" src=\"img/$userID.png\">";
-	echo "</div>";
-	echo "<div class=\"profile-desc\">";
-	echo "<p>User Description Here</p>";
-	echo "</div>";
-	echo "</div>";
+	// If profile not found
 
-	// amount of comments to display on user's profile
-	$amount = 10;
+	if ($user == null) {
+		echo "<h2>No Profile Found!</h2>";
+		echo "<br>";
+		echo "<h3 style='text-align:center'>We could not find a user with that userID :(</h3>";
+	} else {
 
-	$commentQueryByUser->bind_param("ii", $user[0], $amount);
-	$commentQueryByUser->execute();
-	$comments = $commentQueryByUser->get_result();
+		// Display profile with selected ID
 
-	echo "<h2>$username's Post Activity</h2>";
+		$username = $user[1];
 
-	while ($comment = $comments->fetch_row()) {
+		echo "<h2>$username's Profile</h2>";
+		echo "<div class=\"content-row\">";
+		echo "<div class=\"profile-pic\">";
+		echo "</div>";
+		echo "<div class=\"profile-desc\">";
+		echo "<p>User Description Here</p>";
+		echo "</div>";
+		echo "</div>";
 
-		$threadQueryByThread->bind_param("i", $comment[2]);
-		$threadQueryByThread->execute();
-		$thread = $threadQueryByThread->get_result()->fetch_row();
+		// Amount of comments to display on user's profile
 
-		$threadID = $thread[0];
-		$threadTitle = $thread[3];
-		$commentContent = $comment[4];
+		$amount = 10;
 
+		$commentQueryByUser->bind_param("ii", $user[0], $amount);
+		$commentQueryByUser->execute();
+		$comments = $commentQueryByUser->get_result();
+
+		echo "<h2>$username's Post Activity</h2>";
 		echo "<div class=\"content-row\">";
 		echo "<div class=\"post-title\">";
-		echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
-		echo "</div>";
-		echo "<div class=\"post-preview\">";
-		echo "<p>$commentContent</p>";
+
+
+		while ($comment = $comments->fetch_row()) {
+
+			$threadQueryByThread->bind_param("i", $comment[2]);
+			$threadQueryByThread->execute();
+			$thread = $threadQueryByThread->get_result()->fetch_row();
+
+			$threadID = $thread[0];
+			$threadTitle = $thread[3];
+			$commentContent = $comment[4];
+
+			echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
+			echo "</div>";
+			echo "<div class=\"post-preview\">";
+			echo "<p>$commentContent</p>";
+		}
+
 		echo "</div>";
 		echo "</div>";
 	}
 }
-
-
-
-
-
-
-
-
-
 
 // Echo a list of comments in this thread
 
@@ -297,12 +311,6 @@ function listComments($threadID)
 	$comments->close();
 }
 
-
-
-
-
-
-
 // Insert a user into the DB
 
 function insertUser($username, $password, $email)
@@ -356,21 +364,71 @@ function insertComment($posterID, $threadID, $content)
 {
 
 	global $commentInsert, $threadUpdateTime, $forumUpdateTime, $threadQueryByThread;
-		
+
 	// Some modest input sanitation
 	$content = strip_tags($content);
 	$content = str_replace("\n", "<br>", $content);
-	
+
 	$commentInsert->bind_param("iis", $posterID, $threadID, $content);
 	$commentInsert->execute();
-	
+
 	$threadQueryByThread->bind_param("i", $threadID);
 	$threadQueryByThread->execute();
 	$thread = $threadQueryByThread->get_result()->fetch_row();
 	$forumID = $thread[1];
-	
+
 	$threadUpdateTime->bind_param("i", $threadID);
 	$forumUpdateTime->bind_param("i", $forumID);
 	$threadUpdateTime->execute();
 	$forumUpdateTime->execute();
+}
+
+// Insert an Image into the DB
+
+function imgInsert($file)
+{
+	global $imgInsert;
+
+	$imgInsert->bind_param("b", $file);
+	if ($imgInsert->execute()) {
+		echo '<script>alert("Image Inserted into DB!")</script>';
+	} else {
+		echo '<script>alert("Image Insert Failed!")</script>';
+	}
+}
+
+function displayImg($imgID)
+{
+
+	global $displayImg;
+
+	$displayImg->bind_param("i", $imgID);
+
+	$img = $displayImg->get_result();
+
+	echo '<img src="data:image/jpeg;base64,' . base64_encode($img) . '"/>  ';
+}
+
+function displayNews($newsID)
+{
+
+	global $getNews;
+
+	$getNews->bind_param("i", $newsID);
+	$getNews->execute();
+	$news = $getNews->get_result();
+
+	echo "<h2>Behind The Closed Doors</h2>";
+	echo '<br>';
+
+	while ($newsRow = $news->fetch_row()) {
+
+		//$newsID = $newsRow[0];
+		$newsTitle = $newsRow[2];
+		$newsContent = $newsRow[3];
+		//$newsImg = $newsRow[4];
+
+		echo "<h3>$newsTitle</h3>";
+		echo "<p>$newsContent</p>";
+	}
 }
