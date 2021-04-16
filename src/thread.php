@@ -39,7 +39,7 @@ include_once 'render.php';
         </div>
 
         <div class="sidebar">
-			<?php displayNews(1); ?>
+			<?php displayNews(); ?>
 		</div>
 
     </div>

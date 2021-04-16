@@ -17,11 +17,11 @@ $usernameQueryyy = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
 
 // Image related
 $imgInsert = $db->prepare("INSERT INTO Images(Image) VALUE (?);");
-$displayImg = $db->prepare("SELECT Image FROM Images WHERE ID = (?)");
+$displayImg = $db->prepare("SELECT Image FROM Images ORDER BY");
 
 // News related
 $insertNews = $db->prepare("INSERT INTO News(UpdateTime, Title, Content, Img) VALUE ( NOW(), ?, ?, ?);");
-$getNews = $db->prepare("SELECT * FROM News WHERE ID = ?;");
+$getNews = $db->prepare("SELECT * FROM News ORDER BY ID DESC LIMIT 1;");
 
 // Forum related
 $forumQuery = $db->prepare("SELECT * FROM Forums WHERE Parent = ? ORDER BY UpdateTime DESC;");
@@ -409,12 +409,11 @@ function displayImg($imgID)
 	echo '<img src="data:image/jpeg;base64,' . base64_encode($img) . '"/>  ';
 }
 
-function displayNews($newsID)
+function displayNews()
 {
 
 	global $getNews;
 
-	$getNews->bind_param("i", $newsID);
 	$getNews->execute();
 	$news = $getNews->get_result();
 
