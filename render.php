@@ -11,6 +11,7 @@ include_once 'database.php';
 function displayThreadTitle($id)
 {
     $forum = getForumByID($id);
+    if($forum){
     // output the title as header
     echo "<h2 id='titleText'><a id='titleText' href='" . $_SERVER['HTTP_REFERER'] . "'><<<   </a>" . $forum[3] . "</h2>";
     echo "<div class=\"content-row\">";
@@ -18,6 +19,10 @@ function displayThreadTitle($id)
     echo "<h4>".$forum[4]."</h4>";
     echo "</div>";
     echo "</div>";
+    }else{
+        $output = "Unable to find post";
+        exit($output);
+    }
 }
 
 function displayHeader(){

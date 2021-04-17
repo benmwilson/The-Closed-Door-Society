@@ -17,6 +17,7 @@ $userIDQuery = $db->prepare("SELECT * FROM Users WHERE ID = ?;");
 $userInsert = $db->prepare("INSERT INTO Users(Username, Email, Password, Administrator) VALUE (?, ?, ?, FALSE);");
 $usernameQueryyy = $db->prepare("SELECT * FROM Users WHERE Username = ?;");
 $getAllUsers = $db->prepare("SELECT * FROM Users;");
+$updateUser = $db->prepare("UPDATE users SET Password = ?, ProfileDescription = ? WHERE id = ?");
 
 // Image related
 $imgInsert = $db->prepare("INSERT INTO Images(Image) VALUE (?);");
@@ -74,6 +75,14 @@ function updateBan($userId, $state){
 	$toggle = intval($state);
 	$updateBan->bind_param("ii", $toggle, $userId);
 	$updateBan->execute();
+}
+
+function updateProfile($userId, $desc, $newPass){
+	global $updateUser;
+	$password = password_hash($newPass, PASSWORD_DEFAULT);
+
+	$updateUser->bind_param("ssi", $password, $desc, $userId);
+	$updateUser->execute();
 }
 
 function listSearchResults($type, $query){
@@ -154,10 +163,17 @@ function listSearchResults($type, $query){
 
 			echo "<div class=\"content-row\">";
 			echo "<div class=\"post-title\">";
+			echo "<a href=\"profile.php?id=$userId\"><img class=\"profile-pic\" src=\"img/profile_$userId.png\"></a>";
 			echo "<h4><a href=\"profile.php?id=$userId\">$userName</a></h4>";
 			echo "</div>";
 			echo "<div class=\"post-preview\">";
-			echo "<p>$userDesc</p>";
+			if(getIsAdminFromID($userId)){
+				echo "<h4 style='color:yellow'>Administrator</h4>";
+			}
+			if(getIsBannedFromID($userId)){
+				echo "<h4 style='color:red'>BANNED</h4>";
+			}
+			echo "<p>Description: $userDesc</p>";
 			echo "</div>";
 			echo "</div>";
 		}
@@ -211,9 +227,22 @@ function isBanned(){
 }
 
 // check if a user is banned based on their id
-function getIsBannedFromID($userId){
+function getIsAdminFromID($userId){
 	$user = getUserByID($userId);
 	// check if the user is an admin $user[5] == 1;
+	if($user[5] == 1){
+		// user is disabled
+		return true;
+	}else{
+		return false;
+	}
+}
+
+
+// check if a user is banned based on their id
+function getIsBannedFromID($userId){
+	$user = getUserByID($userId);
+	// check if the user is banned $user[6] == 1;
 	if($user[6] == 1){
 		// user is disabled
 		return true;
@@ -240,6 +269,7 @@ function listUsersForAdmin($query){
 		$userId = $resultsRow[0];
 		$userName = $resultsRow[1];
 		$userDesc = $resultsRow[4];
+		$userEmail = $resultsRow[2];
 
 		echo "<div class=\"content-row\">";
 		echo "<div class=\"post-title\">";
@@ -247,6 +277,7 @@ function listUsersForAdmin($query){
 		echo "</div>";
 		echo "<div class=\"post-preview\">";
 		echo "<p>Description: $userDesc</p>";
+		echo "<p>Email: $userEmail</p>";
 		echo "</div>";
 		echo "<div>";
 		if(getIsBannedFromID($userId)){
@@ -371,11 +402,14 @@ function listThreads($forumID)
 
 		$threadID = $threadRow[0];
 		$threadTitle = $threadRow[3];
-
+		$threadTime = $threadRow[2];
 
 		echo "<div class=\"content-row\">";
 		echo "<div class=\"post-title\">";
 		echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
+		echo "</div>";
+		echo "<div class='post-preview'>";
+		echo "<h4>Posted at $threadTime</h4>";
 		echo "</div>";
 		echo "</div>";
 	}
@@ -431,20 +465,29 @@ function userProfile($userID)
 		$username = $user[1];
 		$id = $user[0];
 		$description = $user[4];
-
+		
+		if(isset($_SESSION['userid'])){
+			$loggedInId = $_SESSION['userid'];
+			if($id == $loggedInId){
+				// user is looking at their own page so allow for editing
+				echo "<a style='float:right; color:black; margin:5px;' href='editprofile.php'>Edit Profile</a>";
+			}
+		}
 		echo "<h2>$username's Profile</h2>";
 		echo "<div class=\"content-row\">";
 		echo "<div class=\"profile-pic\">";
 		echo "<img class=\"profile-pic-large\" src=\"img/profile_$userID.png\">";
 		echo "</div>";
 		echo "<div class=\"profile-desc\">";
+		if(getIsAdminFromID($id)){
+			echo "<h4 style='color:yellow'>ADMIN</h4>";
+		}
 		if(getIsBannedFromID($id)){
 			echo "<h4 style='color:red'>This user is disabled and is not able to post.</h4>";
 		}
 		echo "<p>User Description:$description</p>";
 		echo "</div>";
 		echo "</div>";
-
 		// Amount of comments to display on user's profile
 
 		$amount = 10;
