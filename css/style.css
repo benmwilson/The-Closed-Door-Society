@@ -37,7 +37,7 @@ h2 {
 }
 
 h3 {
-  color: var(--color-off-black);
+  color: var(--color-off-white);
   text-align: center;
   font-size: 1rem;
 }
@@ -91,7 +91,7 @@ div {
 
 div.left-header nav {
   position: relative;
-  left: 50%;
+  text-align: center;
 }
 
 div.right-header {
@@ -113,7 +113,6 @@ div.right-header input[type="submit"] {
 
 a.header-nav {
   flex: 0, 0, auto;
-  margin-right: 2rem;
   font-size: 2rem;
   color: var(--color-off-white);
 }
