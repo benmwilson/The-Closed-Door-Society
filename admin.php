@@ -27,6 +27,15 @@ include_once 'render.php';
 
 	<div class="main">
 
+    <?php
+        // handle the banning and unbanning
+        if(isset($_GET['toggle']) && isset($_GET['id'])){
+            $userId = $_GET['id'];
+            $toggle = $_GET['toggle'];
+            updateBan($userId, $toggle);
+        }
+    ?>
+
 
 		<div class="content">
 

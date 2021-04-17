@@ -18,6 +18,7 @@ CREATE TABLE Users(
 	Password VARCHAR(256) NOT NULL,
 	ProfileDescription TEXT,
 	Administrator BOOLEAN,
+	Disabled BOOLEAN,
 	
 	UNIQUE (Username),
 	UNIQUE (Email),

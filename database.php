@@ -63,7 +63,18 @@ $getForumsBySearch = $db->prepare("SELECT * FROM Forums WHERE Name LIKE ?;");
 $getThreadsBySearch = $db->prepare("SELECT * FROM threads WHERE Title LIKE ?;");
 $getUsersBySearch = $db->prepare("SELECT * FROM Users WHERE Username LIKE ?;");
 
+// update ban information, needs to params 1/0 int for disabled and an id
+$updateBan = $db->prepare("UPDATE Users SET Disabled = ? WHERE id = ? ;");
+
 // Functions to do shit and display shit
+
+
+function updateBan($userId, $state){
+	global $updateBan;
+	$toggle = intval($state);
+	$updateBan->bind_param("ii", $toggle, $userId);
+	$updateBan->execute();
+}
 
 function listSearchResults($type, $query){
 
@@ -178,6 +189,39 @@ function isAdmin(){
 	}
 }
 
+// check if a user is banned or not based on session
+function isBanned(){
+	// check if the session for user id is stored (logged in)
+	if(isset($_SESSION['userid'])){
+		// store the variable for user id
+		$id = $_SESSION['userid'];
+		// pull user from that id
+		$user = getUserByID($id);
+
+		// check if the user is an admin $user[5] == 1;
+		if($user[6] == 1){
+			// user is disabled
+			return true;
+		}else{
+			return false;
+		}
+	}else{
+		return false;
+	}
+}
+
+// check if a user is banned based on their id
+function getIsBannedFromID($userId){
+	$user = getUserByID($userId);
+	// check if the user is an admin $user[5] == 1;
+	if($user[6] == 1){
+		// user is disabled
+		return true;
+	}else{
+		return false;
+	}
+}
+
 // function to list all users for an admin
 function listUsersForAdmin($query){
 	
@@ -205,7 +249,11 @@ function listUsersForAdmin($query){
 		echo "<p>Description: $userDesc</p>";
 		echo "</div>";
 		echo "<div>";
-		echo "<a href='' style='color:red'>BAN</a>";
+		if(getIsBannedFromID($userId)){
+			echo "<a href='admin.php?toggle=0&id=$userId' style='color:green'>UNBAN</a>";
+		}else{
+			echo "<a href='admin.php?toggle=1&id=$userId' style='color:red'>BAN</a>";
+		}
 		echo "</div>";
 		echo "</div>";
 	}
@@ -336,6 +384,7 @@ function listThreads($forumID)
 
 	if (isset($_SESSION['userid'])) {
 
+		if(!isBanned()){
 		$requestURI = $_SERVER['REQUEST_URI'];
 
 		echo "<div class=\"content-row\">";
@@ -352,6 +401,11 @@ function listThreads($forumID)
 		echo "<input type=\"hidden\" id=\"redirect\" name=\"redirect\" value=\"$requestURI\">";
 		echo "</form>";
 		echo "</div>";
+		}else{
+			echo "<div class='content-row' style='background:red'>";
+			echo "<h4 classs='banned'>You have been banned and are unable to post at this time.</h4>";
+			echo "</div>";
+		}
 	}
 }
 
@@ -375,6 +429,8 @@ function userProfile($userID)
 		// Display profile with selected ID
 
 		$username = $user[1];
+		$id = $user[0];
+		$description = $user[4];
 
 		echo "<h2>$username's Profile</h2>";
 		echo "<div class=\"content-row\">";
@@ -382,7 +438,10 @@ function userProfile($userID)
 		echo "<img class=\"profile-pic-large\" src=\"img/profile_$userID.png\">";
 		echo "</div>";
 		echo "<div class=\"profile-desc\">";
-		echo "<p>User Description Here</p>";
+		if(getIsBannedFromID($id)){
+			echo "<h4 style='color:red'>This user is disabled and is not able to post.</h4>";
+		}
+		echo "<p>User Description:$description</p>";
 		echo "</div>";
 		echo "</div>";
 
