@@ -80,14 +80,16 @@ $deleteCommentByID = $db->prepare("DELETE FROM Comments WHERE ID=?");
 
 // Functions to do shit and display shit
 
-function updateBan($userId, $state){
+function updateBan($userId, $state)
+{
 	global $updateBan;
 	$toggle = intval($state);
 	$updateBan->bind_param("ii", $toggle, $userId);
 	$updateBan->execute();
 }
 
-function updateProfile($userId, $desc, $newPass){
+function updateProfile($userId, $desc, $newPass)
+{
 	global $updateUser;
 	$password = password_hash($newPass, PASSWORD_DEFAULT);
 
@@ -95,25 +97,26 @@ function updateProfile($userId, $desc, $newPass){
 	$updateUser->execute();
 }
 
-function listSearchResults($type, $query){
+function listSearchResults($type, $query)
+{
 
 	$search = "%$query%";
 	global $getThreadsBySearch;
 	global $getForumsBySearch;
 	global $getUsersBySearch;
 
-	if($type == 'forum'){
+	if ($type == 'forum') {
 		$getForumsBySearch->bind_param("s", $search);
 		$getForumsBySearch->execute();
 		$results = mysqli_stmt_get_result($getForumsBySearch);
 
 		if ($results) {
 			echo "<h2>Results</h2>";
-		}else{
+		} else {
 			echo "No results to show...";
 		}
 
-		while ($resultsRow = mysqli_fetch_array($results)){
+		while ($resultsRow = mysqli_fetch_array($results)) {
 			$forumID = $resultsRow[0];
 			$forumName = $resultsRow[3];
 			$forumDesc = $resultsRow[4];
@@ -128,18 +131,18 @@ function listSearchResults($type, $query){
 			echo "</div>";
 		}
 		$results->close();
-	}else if($type == 'thread'){
+	} else if ($type == 'thread') {
 		$getThreadsBySearch->bind_param("s", $search);
 		$getThreadsBySearch->execute();
 		$results = mysqli_stmt_get_result($getThreadsBySearch);
 
 		if ($results) {
 			echo "<h2>Results</h2>";
-		}else{
+		} else {
 			echo "No results to show...";
 		}
 
-		while ($resultsRow = mysqli_fetch_array($results)){
+		while ($resultsRow = mysqli_fetch_array($results)) {
 			$threadID = $resultsRow[0];
 			$threadTitle = $resultsRow[3];
 			$forumId = $resultsRow[1];
@@ -150,23 +153,23 @@ function listSearchResults($type, $query){
 			echo "<h4><a href=\"thread.php?id=$threadID\">$threadTitle</a></h4>";
 			echo "</div>";
 			echo "<div class=\"post-preview\">";
-			echo "<p>From forum: ".$forum[3]."</p>";
+			echo "<p>From forum: " . $forum[3] . "</p>";
 			echo "</div>";
 			echo "</div>";
 		}
 		$results->close();
-	}else if($type == 'user'){
+	} else if ($type == 'user') {
 		$getUsersBySearch->bind_param("s", $search);
 		$getUsersBySearch->execute();
 		$results = mysqli_stmt_get_result($getUsersBySearch);
 
 		if ($results) {
 			echo "<h2>Results</h2>";
-		}else{
+		} else {
 			echo "No results to show...";
 		}
 
-		while ($resultsRow = mysqli_fetch_array($results)){
+		while ($resultsRow = mysqli_fetch_array($results)) {
 			$userId = $resultsRow[0];
 			$userName = $resultsRow[1];
 			$userDesc = $resultsRow[4];
@@ -177,10 +180,10 @@ function listSearchResults($type, $query){
 			echo "<h4><a href=\"profile.php?id=$userId\">$userName</a></h4>";
 			echo "</div>";
 			echo "<div class=\"post-preview\">";
-			if(getIsAdminFromID($userId)){
+			if (getIsAdminFromID($userId)) {
 				echo "<h4 style='color:yellow'>Administrator</h4>";
 			}
-			if(getIsBannedFromID($userId)){
+			if (getIsBannedFromID($userId)) {
 				echo "<h4 style='color:red'>BANNED</h4>";
 			}
 			echo "<p>Description: $userDesc</p>";
@@ -188,82 +191,87 @@ function listSearchResults($type, $query){
 			echo "</div>";
 		}
 		$results->close();
-	}else{
+	} else {
 		$output = "Unable to comprehend the search parameters";
 		exit($output);
 	}
 }
 
 // returns if the logged in user is an admin
-function isAdmin(){
+function isAdmin()
+{
 	// check if the session for user id is stored (logged in)
-	if(isset($_SESSION['userid'])){
+	if (isset($_SESSION['userid'])) {
 		// store the variable for user id
 		$id = $_SESSION['userid'];
 		// pull user from that id
 		$user = getUserByID($id);
 
 		// check if the user is an admin $user[5] == 1;
-		if($user[5] == 1){
+		if ($user[5] == 1) {
 			// user is an admin
 			return true;
-		}else{
+		} else {
 			return false;
 		}
-	}else{
+	} else {
 		return false;
 	}
 }
 
 // check if a user is banned or not based on session
-function isBanned(){
+function isBanned()
+{
 	// check if the session for user id is stored (logged in)
-	if(isset($_SESSION['userid'])){
+	if (isset($_SESSION['userid'])) {
 		// store the variable for user id
 		$id = $_SESSION['userid'];
 		// pull user from that id
 		$user = getUserByID($id);
 
-		// check if the user is an admin $user[5] == 1;
-		if($user[6] == 1){
+		// check if the user is a disabled $user[6] == 1;
+		if ($user[6] == 1) {
 			// user is disabled
 			return true;
-		}else{
+		} else {
 			return false;
 		}
-	}else{
+	} else {
 		return false;
 	}
 }
 
 // check if a user is banned based on their id
-function getIsAdminFromID($userId){
+function getIsAdminFromID($userId)
+{
 	$user = getUserByID($userId);
 	// check if the user is an admin $user[5] == 1;
-	if($user[5] == 1){
+	if ($user[5] == 1) {
 		// user is disabled
 		return true;
-	}else{
+	} else {
 		return false;
 	}
 }
 
 
 // check if a user is banned based on their id
-function getIsBannedFromID($userId){
+function getIsBannedFromID($userId)
+{
 	$user = getUserByID($userId);
 	// check if the user is banned $user[6] == 1;
-	if($user[6] == 1){
+	if ($user[6] == 1) {
 		// user is disabled
 		return true;
-	}else{
+	} else {
 		return false;
 	}
 }
 
 // function to list all users for an admin
-function listUsersForAdmin($query){
-	
+function listUsersForAdmin($query)
+{
+
 	$search = "%$query%";
 	global $getUsersBySearch;
 
@@ -271,11 +279,11 @@ function listUsersForAdmin($query){
 	$getUsersBySearch->execute();
 	$results = mysqli_stmt_get_result($getUsersBySearch);
 	if ($results) {
-	}else{
+	} else {
 		echo "<h2>No results to show...</2>";
 	}
 
-	while ($resultsRow = mysqli_fetch_array($results)){
+	while ($resultsRow = mysqli_fetch_array($results)) {
 		$userId = $resultsRow[0];
 		$userName = $resultsRow[1];
 		$userDesc = $resultsRow[4];
@@ -290,9 +298,9 @@ function listUsersForAdmin($query){
 		echo "<p>Email: $userEmail</p>";
 		echo "</div>";
 		echo "<div>";
-		if(getIsBannedFromID($userId)){
+		if (getIsBannedFromID($userId)) {
 			echo "<a href='admin.php?toggle=0&id=$userId' style='color:green'>UNBAN</a>";
-		}else{
+		} else {
 			echo "<a href='admin.php?toggle=1&id=$userId' style='color:red'>BAN</a>";
 		}
 		echo "</div>";
@@ -407,7 +415,7 @@ function listForums($parentID)
 		echo "<div class=\"post-preview\">";
 		echo "<p>$forumDesc</p>";
 		echo "</div>";
-		if(isAdmin()){
+		if (isAdmin()) {
 			echo "<div>";
 			echo "<a href='deleteforum.php?id=$forumID' style='color:red'>DELETE</a>";
 			echo "</div>";
@@ -447,7 +455,7 @@ function listThreads($forumID)
 		echo "<div class='post-preview'>";
 		echo "<h4>Posted at $threadTime</h4>";
 		echo "</div>";
-		if(isAdmin()){
+		if (isAdmin()) {
 			echo "<div>";
 			echo "<a href='deletethread.php?id=$threadID' style='color:red'>DELETE</a>";
 			echo "</div>";
@@ -459,24 +467,23 @@ function listThreads($forumID)
 
 	if (isset($_SESSION['userid'])) {
 
-		if(!isBanned()){
-		$requestURI = $_SERVER['REQUEST_URI'];
+		if (!isBanned()) {
+			$requestURI = $_SERVER['REQUEST_URI'];
 
-		echo "<div class=\"content-row\">";
-		echo "<form action=\"post.php\" method=\"POST\">";
-		echo "<div class=\"label\">";
-		echo "<h2>New Thread</h2>";
-		echo "<label for=\"title\">Title: </label>";
-		echo "<input type=\"text\" class=\"title\" id=\"title\" name=\"title\">";
-		echo "</div>";
-		echo "<label>Content</label>";
-		echo "<textarea id=\"replytext\" name=\"replytext\" rows=\"4\" cols=\"40\"></textarea>";
-		echo "<input type=\"submit\" class=\"reply\" value=\"Post\">";
-		echo "<input type=\"hidden\" id=\"forumid\" name=\"forumid\" value=\"$forumID\">";
-		echo "<input type=\"hidden\" id=\"redirect\" name=\"redirect\" value=\"$requestURI\">";
-		echo "</form>";
-		echo "</div>";
-		}else{
+			echo "<div class=\"content-row\">";
+			echo "<form id='new-thread' action=\"post.php\" method=\"POST\">";
+			echo "<h2>New Thread</h2>";
+			echo "<br>";
+			echo "<label for=\"title\">Title: </label>";
+			echo "<input type=\"text\" class=\"title\" id=\"title\" name=\"title\">";
+			echo "<label>Content</label>";
+			echo "<textarea id=\"replytext\" name=\"replytext\" rows=\"4\" cols=\"40\"></textarea>";
+			echo "<input type=\"submit\" class=\"reply\" value=\"Post\">";
+			echo "<input type=\"hidden\" id=\"forumid\" name=\"forumid\" value=\"$forumID\">";
+			echo "<input type=\"hidden\" id=\"redirect\" name=\"redirect\" value=\"$requestURI\">";
+			echo "</form>";
+			echo "</div>";
+		} else {
 			echo "<div class='content-row' style='background:red'>";
 			echo "<h4 classs='banned'>You have been banned and are unable to post at this time.</h4>";
 			echo "</div>";
@@ -506,10 +513,10 @@ function userProfile($userID)
 		$username = $user[1];
 		$id = $user[0];
 		$description = $user[4];
-		
-		if(isset($_SESSION['userid'])){
+
+		if (isset($_SESSION['userid'])) {
 			$loggedInId = $_SESSION['userid'];
-			if($id == $loggedInId){
+			if ($id == $loggedInId) {
 				// user is looking at their own page so allow for editing
 				echo "<a style='float:right; color:black; margin:5px;' href='editprofile.php'>Edit Profile</a>";
 			}
@@ -520,10 +527,10 @@ function userProfile($userID)
 		echo "<img class=\"profile-pic-large\" src=\"img/profile_$userID.png\">";
 		echo "</div>";
 		echo "<div class=\"profile-desc\">";
-		if(getIsAdminFromID($id)){
+		if (getIsAdminFromID($id)) {
 			echo "<h4 style='color:yellow'>ADMIN</h4>";
 		}
-		if(getIsBannedFromID($id)){
+		if (getIsBannedFromID($id)) {
 			echo "<h4 style='color:red'>This user is disabled and is not able to post.</h4>";
 		}
 		echo "<p>User Description:$description</p>";
@@ -602,7 +609,7 @@ function listComments($threadID)
 		echo "<fieldset class='comment'>";
 		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/profile_$posterID.png\"></a>";
 		echo "<br>";
-		if(isAdmin()){
+		if (isAdmin()) {
 			echo "<a href='deletecomment.php?id=$commentId' style='color:red; float:right;'>DELETE</a>";
 		}
 
@@ -678,7 +685,8 @@ function insertThread($posterID, $forumID, $title, $content)
 	$forumUpdateTime->execute();
 }
 
-function insertForum($forumName, $forumDesc){
+function insertForum($forumName, $forumDesc)
+{
 	global $forumInsert;
 
 	// Some modest input sanitation
@@ -858,19 +866,22 @@ function increaseCommentCount($threadID)
 	$threadUpdateCommentsNumer->execute();
 }
 
-function deleteForum($id){
+function deleteForum($id)
+{
 	global $deleteForumByID;
 	$deleteForumByID->bind_param("i", $id);
 	$deleteForumByID->execute();
 }
 
-function deleteThread($id){
+function deleteThread($id)
+{
 	global $deleteThreadByID;
 	$deleteThreadByID->bind_param("i", $id);
 	$deleteThreadByID->execute();
 }
 
-function deleteComment($id){
+function deleteComment($id)
+{
 	global $deleteCommentByID;
 	$deleteCommentByID->bind_param("i", $id);
 	$deleteCommentByID->execute();

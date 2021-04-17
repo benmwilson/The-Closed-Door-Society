@@ -30,10 +30,10 @@ function displayHeader(){
     echo "<div class='left-header'>";
     echo "<h1>The Closed Door Society</h1>";
     echo "<nav>";
-    echo "<a class='header-nav' href='main.php'>Home</a>";
-    echo "<a class='header-nav' href='search.php'>Search</a>";
+    echo "<a class='header-nav' href='main.php'>{Home}</a>";
+    echo "<a class='header-nav' href='search.php'>{Search}</a>";
     if(isAdmin()){
-        echo "<a class='header-nav' href='admin.php'>Admin</a>";
+        echo "<a class='header-nav' href='admin.php'>{Admin}</a>";
     }
     echo "</nav>";
     echo "</div>";
