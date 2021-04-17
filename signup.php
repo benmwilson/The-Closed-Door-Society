@@ -77,8 +77,12 @@ include_once 'render.php';
         </div>
 
         <div class="sidebar">
-			<?php displayNews(); ?>
-		</div>
+            <?php displayNews(); ?>
+            <br>
+            <?php displayRecentComments(); ?>
+            <br>
+            <?php displayHotThreads(); ?>
+        </div>
 
     </div>
 
