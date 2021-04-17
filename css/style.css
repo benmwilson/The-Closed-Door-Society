@@ -2,11 +2,14 @@
   --color-dark-blue: #09486e;
   --color-light-blue: #56beff;
   --color-off-black: #1b1b1b;
+  --color-black: #000000;
   --color-off-white: #fffff0;
   --color-dark-gray: #2b2b2b;
   --color-grey: #3c3c3c;
   --color-light-gray: #c0c0c0;
   --color-green: #00ff00;
+  --color-off-green: #00cc00;
+  --color-dark-green: #090;
   --border-off-black: 0.2rem solid var(--color-off-black);
   color: var(--color-off-white);
 }
@@ -129,24 +132,19 @@ div.sidebar, div.content {
   padding: 0.5rem;
 }
 
-div.sidebar {
-  /* flex: 1 1 15%; */
-}
-
 tr {
   line-height: 1.428571429;
   color: #0c0;
   background-color: var(--color-grey);
 }
 
-thead tr{
-  color: var(--color-green);
+thead tr {
+  color: var(--color-off-green);
   background-color: var(--color-off-black);
 }
 
 td {
-  color: #0c0;
-  /* padding: 8px; */
+  color: var(--color-off-green);
   padding: 0.45em;
   vertical-align: top;
   border-top: 1px solid #444;
@@ -195,4 +193,66 @@ input.title {
   text-align: left;
   font-size: 3rem;
   background: var(--color-off-black);
+}
+
+div.right-header {
+  color: #0c0;
+  min-height: 20px;
+  padding: 0.5em;
+  background-color: var(--color-dark-gray);
+  border: 1px solid #000;
+}
+
+input {
+  padding: 6px 12px;
+  color: var(--color-dark-green);
+  background-color: #000;
+  background-image: none;
+  border: 1px solid #444;
+  border-radius: 0;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+#signup {
+    padding: 6px 12px;
+    font-size: 14px;
+    color: var(--color-black);
+    background-color: var(--color-green);
+}
+
+input[type = "submit"] {
+  font-family: inherit;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--color-green);
+  background-color: #222;
+}
+
+::placeholder {
+  color: var(--color-dark-green);
+  font-family: monospace;
+}
+
+#registration-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 350px;
+  height: 200px;
+  align-items: center;
+  align-content: space-around;
+}
+
+#userimg {
+  width: 195px;
+  height: 29px;
+  padding: 0;
+  color: var(--color-dark-green);
+  background-color: #000;
+  background-image: none;
+  border: 1px solid #444;
+  border-radius: 0;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }

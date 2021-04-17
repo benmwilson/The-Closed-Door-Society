@@ -50,36 +50,34 @@ include_once 'render.php';
 
             <h2>Sign Up To The Closed Door Society</h2>
             <form id="registration-form" action="newuser.php" method="POST" enctype="multipart/form-data">
-                <table>
-                    <tr>
-                        <h4>
-                            <td><label for="username">Username:</label></td>
-                            <td><input type="text" name="username" id="username" maxlength="64" required></td>
-                        </h4>
-                    </tr>
-                    <tr>
-                        <h4>
-                            <td><label for="email">Email:</label></td>
-                            <td><input type="email" name="email" id="email" required></td>
-                        </h4>
-                    </tr>
-                    <tr>
-                        <h4>
-                            <td><label for="password">Password:</label></td>
-                            <td><input type="password" name="password" id="password" required></td>
-                        </h4>
-                    </tr>
-                    <tr>
-                        <h4>
-                            <td><label for="userimg">User Image:</label></td>
-                            <td><input type="file" id="userimg" name="userimg" accept="image/png"></td>
-                        </h4>
-                    <tr>
-                        <h4>
-                            <td><input type="submit" value="Submit"></td>
-                        </h4>
-                    </tr>
-                </table>
+                
+                    
+                        
+                            <label for="username">Username:</label>
+                            <input type="text" name="username" id="username" maxlength="64" required>
+                        
+                    
+                        
+                            <label for="email">Email:</label>
+                            <input type="email" name="email" id="email" required>
+                        
+                    
+                    
+                    
+                            <label for="password">Password:</label>
+                            <input type="password" name="password" id="password" required>
+                        
+                    
+                    
+                            <label for="userimg">User Image:</label>
+                            <input type="file" id="userimg" name="userimg" accept="image/png">
+                        
+                    
+                    
+                            <input type="submit" value="Submit">
+    
+                    
+                
             </form>
 
         </div>
