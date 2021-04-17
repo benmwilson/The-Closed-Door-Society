@@ -40,6 +40,7 @@ $threadQueryByForum = $db->prepare("SELECT * FROM Threads WHERE ForumID = ? ORDE
 $threadQueryByThread = $db->prepare("SELECT * FROM Threads WHERE ID = ?;");
 $threadInsert = $db->prepare("INSERT INTO Threads(ForumID, UpdateTime, Title) VALUE (?, NOW(), ?);");
 $threadUpdateTime = $db->prepare("UPDATE Threads SET UpdateTime = NOW() WHERE ID = ?;");
+$getThreadById = $db->prepare("SELECT * FROM Threads WHERE ID = ?;");
 
 $threadUpdateCommentsNumer = $db->prepare("UPDATE Threads SET Comments = Comments + 1 WHERE ID = ?;");
 
@@ -72,8 +73,12 @@ $getUsersBySearch = $db->prepare("SELECT * FROM Users WHERE Username LIKE ?;");
 // update ban information, needs to params 1/0 int for disabled and an id
 $updateBan = $db->prepare("UPDATE Users SET Disabled = ? WHERE id = ? ;");
 
-// Functions to do shit and display shit
+// deletion
+$deleteForumByID = $db->prepare("DELETE FROM Forums WHERE ID=?");
+$deleteThreadByID = $db->prepare("DELETE FROM Threads WHERE ID=?");
+$deleteCommentByID = $db->prepare("DELETE FROM Comments WHERE ID=?");
 
+// Functions to do shit and display shit
 
 function updateBan($userId, $state){
 	global $updateBan;
@@ -336,6 +341,27 @@ function getUserByID($userID)
 	$result->close();
 }
 
+// get thread by id
+
+function getThreadById($threadId)
+{
+
+	global $getThreadById;
+
+	$getThreadById->bind_param("i", $threadId);
+	$getThreadById->execute();
+	$result = $getThreadById->get_result();
+
+	if ($thread = $result->fetch_row()) {
+		return $thread;
+	} else {
+		return null;
+	}
+
+	$result->close();
+}
+
+
 function getForumByID($forumID)
 {
 	global $forumIDQuery;
@@ -381,6 +407,11 @@ function listForums($parentID)
 		echo "<div class=\"post-preview\">";
 		echo "<p>$forumDesc</p>";
 		echo "</div>";
+		if(isAdmin()){
+			echo "<div>";
+			echo "<a href='deleteforum.php?id=$forumID' style='color:red'>DELETE</a>";
+			echo "</div>";
+		}
 		echo "</div>";
 	}
 
@@ -416,6 +447,11 @@ function listThreads($forumID)
 		echo "<div class='post-preview'>";
 		echo "<h4>Posted at $threadTime</h4>";
 		echo "</div>";
+		if(isAdmin()){
+			echo "<div>";
+			echo "<a href='deletethread.php?id=$threadID' style='color:red'>DELETE</a>";
+			echo "</div>";
+		}
 		echo "</div>";
 	}
 
@@ -566,6 +602,9 @@ function listComments($threadID)
 		echo "<fieldset class='comment'>";
 		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/profile_$posterID.png\"></a>";
 		echo "<br>";
+		if(isAdmin()){
+			echo "<a href='deletecomment.php?id=$commentId' style='color:red; float:right;'>DELETE</a>";
+		}
 
 		//displayLikeBar($commentId);
 
@@ -813,11 +852,28 @@ function displayHotThreads()
 
 function increaseCommentCount($threadID)
 {
-
 	global $threadUpdateCommentsNumer;
 
 	$threadUpdateCommentsNumer->bind_param("i", $threadID);
 	$threadUpdateCommentsNumer->execute();
+}
+
+function deleteForum($id){
+	global $deleteForumByID;
+	$deleteForumByID->bind_param("i", $id);
+	$deleteForumByID->execute();
+}
+
+function deleteThread($id){
+	global $deleteThreadByID;
+	$deleteThreadByID->bind_param("i", $id);
+	$deleteThreadByID->execute();
+}
+
+function deleteComment($id){
+	global $deleteCommentByID;
+	$deleteCommentByID->bind_param("i", $id);
+	$deleteCommentByID->execute();
 }
 
 
