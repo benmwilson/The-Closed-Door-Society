@@ -23,15 +23,7 @@ include_once 'render.php';
 
 <body>
 
-	<div class="header">
-		<div class="left-header">
-			<h1>The Closed Door Society</h1>
-			<nav>
-				<a class="header-nav" href="main.php">Home</a>
-			</nav>
-		</div>
-		<?php include 'userinfo.php'; ?>
-	</div>
+	<?php displayHeader(); ?>
 
 	<div class="main">
 
