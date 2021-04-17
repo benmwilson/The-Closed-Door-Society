@@ -50,8 +50,11 @@ include_once 'render.php';
 
 
         <div class="content">
-
-            <?php displayThreadTitle($_GET['id']) ?>
+        
+            <?php
+                $thread = getThreadById($_GET['id']); 
+                displayThreadTitle($thread[1]);
+            ?>
             <?php listComments($_GET['id']) ?>
 
         </div>
