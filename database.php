@@ -1,6 +1,7 @@
 <?php
 
 include_once 'render.php';
+include_once 'likes.php';
 
 // DB Setup
 
@@ -37,24 +38,28 @@ $threadQueryByThread = $db->prepare("SELECT * FROM Threads WHERE ID = ?;");
 $threadInsert = $db->prepare("INSERT INTO Threads(ForumID, UpdateTime, Title) VALUE (?, NOW(), ?);");
 $threadUpdateTime = $db->prepare("UPDATE Threads SET UpdateTime = NOW() WHERE ID = ?;");
 
+$threadUpdateCommentsNumer = $db->prepare("UPDATE Threads SET Comments = Comments + 1 WHERE ID = ?;");
+
 // Comment related
 $commentQueryByThread = $db->prepare("SELECT * FROM Comments WHERE ThreadID = ? ORDER BY UpdateTime ASC LIMIT ?;");
 $commentQueryByUser = $db->prepare("SELECT * FROM Comments WHERE PosterID = ? ORDER BY UpdateTime DESC LIMIT ?;");
 $commentInsert = $db->prepare("INSERT INTO Comments(PosterID, ThreadID, UpdateTime, Content) VALUE (?, ?, NOW(), ?);");
 
-// Like related
-$increaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes + 1 WHERE id = ?");
-$decreaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes - 1 WHERE id = ?");
-$addLikeToDB = $db->prepare("INSERT INTO Likes(UpdateTime, UserID, CommentID) VALUE (NOW(), ?, ?);");
-$removeLikeFromDB = $db->prepare("DELETE FROM Likes WHERE UserID=? AND CommentID=?;");
-$hasLikedQuery = $db->prepare("SELECT * FROM Likes WHERE UserID=? AND CommentID=?;");
-$getLikesOfComment = $db->prepare("SELECT likes FROM Comments WHERE ID = ? ;");
-
 // Recent comment related
 $getRecentComments = $db->prepare("SELECT * FROM Comments ORDER BY ID DESC LIMIT 5;");
 
 // Hot thread related
-$getHotComments = $db->prepare("SELECT * FROM Comments ORDER BY Likes DESC LIMIT 5;");
+$getHotThreads = $db->prepare("SELECT * FROM Threads ORDER BY Comments DESC LIMIT 5;");
+
+// Code from the comment liking system I was working on, couldn't get it done in time :( -BW
+// Like related 
+// $increaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes + 1 WHERE id = ?");
+// $decreaseLikeOnComment = $db->prepare("UPDATE Comments SET Likes = Likes + -1 WHERE id = ?");
+// $addLikeToDB = $db->prepare("INSERT INTO Likes(UpdateTime, UserID, CommentID) VALUE (NOW(), ?, ?);");
+// $removeLikeFromDB = $db->prepare("DELETE FROM Likes WHERE UserID= ? AND CommentID= ?;");
+// $hasLikedQuery = $db->prepare("SELECT * FROM Likes WHERE UserID=? AND CommentID=?;");
+// $getLikesOfComment = $db->prepare("SELECT likes FROM Comments WHERE ID = ? ;");
+
 
 // Functions to do shit and display shit
 
@@ -306,9 +311,10 @@ function listComments($threadID)
 		echo "<fieldset class='comment'>";
 		echo "<a href=\"profile.php?id=$posterID\"><img class=\"profile-pic\" src=\"img/profile_$posterID.png\"></a>";
 		echo "<br>";
-		displayLikeBar($commentId);
-		echo "<br>";
 
+		//displayLikeBar($commentId);
+
+		echo "<br>";
 		echo "<legend>[$username at $commentTime]</legend>";
 		echo "<p>$commentData</p>";
 		echo "</fieldset>";
@@ -465,7 +471,8 @@ function displayNews()
 		$newsTime = $newsRow[1];
 		//$newsImg = $newsRow[4];
 
-		echo "<h3>$newsTitle posted at ". substr($newsTime, 10, 6);"</h3>";
+		echo "<h3>$newsTitle posted at " . substr($newsTime, 10, 6);
+		"</h3>";
 		echo "<p>$newsContent</p>";
 		echo '<br>';
 		echo "<img width='200' height='200' src=\"img/news_$newsID.png\">";
@@ -497,8 +504,9 @@ function displayRecentComments()
 		$commentContent = $recentCommentsRow[4];
 		$dateTime = substr($recentCommentsRow[3], 10, 6);
 
+
 		echo "<tr>";
-		echo "<td>$username</td>";
+		echo "<td><p><a href=\"profile.php?id=$recentCommentsRow[1]\">$username</a></p></td>";
 		echo "<td style='word-break:break-all;'>$commentContent</td>";
 		echo "<td>$dateTime</td>";
 		echo "</tr>";
@@ -506,105 +514,121 @@ function displayRecentComments()
 	echo "</table>";
 }
 
-function displayHotComments()
+
+function displayHotThreads()
 {
 
-	global $getHotComments;
+	global $getHotThreads;
 
-	$getHotComments->execute();
-	$hotComments = $getHotComments->get_result();
+	$getHotThreads->execute();
+	$hotThreads = $getHotThreads->get_result();
 
-	echo "<h2>Hot Comments</h2>";
+	echo "<h2>Hot Threads</h2>";
 	echo '<br>';
 	echo "<table>";
 	echo "<tr>";
-	echo '<th>Poster</th>';
-	echo '<th>Content</th>';
-	echo '<th>Likes</th>';
+	echo '<th>Thread Title</th>';
+	echo '<th>Comment Count</th>';
 	echo "</tr>";
 
-	while ($hotCommentsRow = $hotComments->fetch_row()) {
+	while ($hotThreadsRow = $hotThreads->fetch_row()) {
 
-		$poster = getUserByID($hotCommentsRow[1]);
-		$username = $poster[1];
-		$commentContent = $hotCommentsRow[4];
-		$likes = $hotCommentsRow[5];
+		$threadTitle = $hotThreadsRow[3];
+		$commentCount = $hotThreadsRow[4];
+		$threadID = $hotThreadsRow[0];
 
 		echo "<tr>";
-		echo "<td>$username</td>";
-		echo "<td style='word-break:break-all;'>$commentContent</td>";
-		echo "<td>$likes</td>";
+		echo "<td><p><a href=\"thread.php?id=$threadID\">$threadTitle</a></p></td>";
+		echo "<td>$commentCount</td>";
 		echo "</tr>";
 	}
 	echo "</table>";
 }
 
-function displayLikeBar($commentID)
-{
-	global $hasLikedQuery;
-
-
-	if ($_SESSION['userid'] != null) {
-
-		$userID = $_SESSION['userid'];
-
-
-		$hasLikedQuery->bind_param("ii", $userID, $commentID);
-		$hasLikedQuery->execute();
-
-		$hasLiked = $hasLikedQuery->get_result();
-
-
-
-		// If they have, show red heart
-		if ($hasLiked->num_rows > 0) {
-			//echo '<a onclick="increaseLike($commentID, $userID);"><img src= "img\Heart-icon.png" width="20" height="20></a>';
-
-			echo "<a href='#' onclick='decreaseLike($commentID, $userID);''><img src='img\Heart-icon.png' width='20' height='20'></a>";
-
-			// echo '<img src="img\Heart-icon.png" width="20" height="20">';
-			getLikes($commentID);
-		} else {
-			// If they haven't show empty heart
-			echo '<img src="img\heart-outline.png" width="20" height="20">';
-			getLikes($commentID);
-		}
-	} else {
-		getLikes($commentID);
-	}
-}
-
-function getLikes($commentID)
-{
-	global $getLikesOfComment;
-
-	$getLikesOfComment->bind_param("i", $commentID);
-	$getLikesOfComment->execute();
-	$likes = $getLikesOfComment->get_result()->fetch_row();
-
-	echo "<p>Likes: $likes[0]</p>";
-}
-
-function increaseLike($commentID, $userID)
+function increaseCommentCount($threadID)
 {
 
-	global $addLikeToDB, $increaseLikeOnComment;
+	global $threadUpdateCommentsNumer;
 
-	$addLikeToDB->bind_param("ii", $userID, $commentID);
-	$addLikeToDB->execute();
-
-	$increaseLikeOnComment->bind_param("i", $commentID);
-	$increaseLikeOnComment->execute();
+	$threadUpdateCommentsNumer->bind_param("i", $threadID);
+	$threadUpdateCommentsNumer->execute();
 }
 
-function decreaseLike($commentID, $userID)
-{
 
-	global $removeLikeFromDB, $decreaseLikeOnComment;
+// Code from the comment liking system I was working on, couldn't get it done in time :( -BW
 
-	$removeLikeFromDB->bind_param("ii", $userID, $commentID);
-	$removeLikeFromDB->execute();
+// function displayLikeBar($commentID)
+// {
+// 	global $hasLikedQuery;
 
-	$decreaseLikeOnComment->bind_param("i", $commentID);
-	$decreaseLikeOnComment->execute();
-}
+
+// 	if ($_SESSION['userid'] != null) {
+
+// 		$userID = $_SESSION['userid'];
+
+// 		$hasLikedQuery->bind_param("ii", $userID, $commentID);
+// 		$hasLikedQuery->execute();
+
+// 		$hasLiked = $hasLikedQuery->get_result();
+	
+
+
+// 		echo "<p>CommentID: $commentID</p>";
+
+// 		// If they have, show red heart
+// 		if ($hasLiked->num_rows > 0) {
+// 			//echo '<a onclick="increaseLike($commentID, $userID);"><img src= "img\Heart-icon.png" width="20" height="20></a>';
+// 			// echo "<img src='img\Heart-icon.png' width='20' height='20'>";
+// 			// echo "<button id='unlike' type='button' data-CommentID='$a' data-UserID='$userID' onclick='unlike()'>Unlike</button>";
+
+// 			hasLiked($userID, $commentID);
+// 			// echo '<img src="img\Heart-icon.png" width="20" height="20">';
+// 			getLikes($commentID);
+// 		} else {
+
+			
+// 			// If they haven't show empty heart
+// 			hasntLiked($userID, $commentID);
+// 			getLikes($commentID);
+// 		}
+// 	} else {
+// 		getLikes($commentID);
+// 	}
+	
+// }
+
+// function getLikes($commentID)
+// {
+// 	global $getLikesOfComment;
+
+// 	$getLikesOfComment->bind_param("i", $commentID);
+// 	$getLikesOfComment->execute();
+// 	$likes = $getLikesOfComment->get_result()->fetch_row();
+
+// 	echo "<p>Likes: $likes[0]</p>";
+// }
+
+// function increaseLike($commentID, $userID)
+// {
+
+// 	global $addLikeToDB, $increaseLikeOnComment;
+
+// 	$addLikeToDB->bind_param("ii", $userID, $commentID);
+// 	$addLikeToDB->execute();
+
+// 	$increaseLikeOnComment->bind_param("i", $commentID);
+// 	$increaseLikeOnComment->execute();
+	
+// }
+
+// function decreaseLike($commentID, $userID)
+// {
+
+// 	global $removeLikeFromDB, $decreaseLikeOnComment;
+
+// 	$removeLikeFromDB->bind_param("ii", $userID, $commentID);
+// 	$removeLikeFromDB->execute();
+
+// 	$decreaseLikeOnComment->bind_param("i", $commentID);
+// 	$decreaseLikeOnComment->execute();
+// }

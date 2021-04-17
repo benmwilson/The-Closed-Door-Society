@@ -12,8 +12,14 @@
 	
 	insertComment($_SESSION['userid'], $_POST['threadid'], $_POST['replytext']);
 	
+	$threadID = $_POST['threadid'];
+
+	increaseCommentCount($threadID);
+
 	$redirectURI = $_POST['redirect'];
 	header("Location: $redirectURI");
 	die();
+
+
 
 ?>

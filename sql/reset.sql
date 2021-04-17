@@ -48,6 +48,7 @@ CREATE TABLE Threads(
 	ForumID INT NOT NULL,
 	UpdateTime DATETIME NOT NULL,
 	Title VARCHAR(256) NOT NULL,
+	Comments INT NOT NULL DEFAULT 0,
 	
 	PRIMARY KEY (ID),
 	FOREIGN KEY (ForumID) REFERENCES Forums(ID),
@@ -62,7 +63,6 @@ CREATE TABLE Comments(
 	ThreadID INT NOT NULL,
 	UpdateTime DATETIME NOT NULL,
 	Content TEXT NOT NULL,
-	Likes INT NOT NULL DEFAULT 0,
 	
 	PRIMARY KEY (ID),
 	FOREIGN KEY (PosterID) REFERENCES Users(ID),
@@ -94,17 +94,19 @@ CREATE TABLE News(
 	
 );
 
-CREATE TABLE Likes(
+-- Code from the comment liking system I was working on, couldn't get it done in time :( -BW
 
-	ID INT NOT NULL AUTO_INCREMENT,
-	UpdateTime DATETIME NOT NULL,
-	UserID INT NOT NULL,
-	CommentID INT NOT NULL,
+-- CREATE TABLE Likes(
+
+-- 	ID INT NOT NULL AUTO_INCREMENT,
+-- 	UpdateTime DATETIME NOT NULL,
+-- 	UserID INT NOT NULL,
+-- 	CommentID INT NOT NULL,
 	
-	PRIMARY KEY (ID),
-	INDEX (UpdateTime)
+-- 	PRIMARY KEY (ID),
+-- 	INDEX (UpdateTime)
 	
-);
+-- );
 
 -- Populate Tables
 

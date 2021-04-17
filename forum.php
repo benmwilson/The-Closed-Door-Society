@@ -42,7 +42,7 @@ include_once 'render.php';
             <br>
             <?php displayRecentComments(); ?>
             <br>
-            <?php displayHotComments(); ?>
+            <?php displayHotThreads(); ?>
         </div>
     </div>
 
