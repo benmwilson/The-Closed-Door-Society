@@ -484,11 +484,13 @@ function displayRecentComments()
 	echo "<h2>Recent Activity</h2>";
 	echo '<br>';
 	echo "<table>";
+	echo "<thead>";
 	echo "<tr>";
 	echo '<th>Poster</th>';
 	echo '<th>Content</th>';
 	echo '<th>Time</th>';
 	echo "</tr>";
+	echo "</thead>";
 
 	while ($recentCommentsRow = $recentComments->fetch_row()) {
 
@@ -517,11 +519,13 @@ function displayHotComments()
 	echo "<h2>Hot Comments</h2>";
 	echo '<br>';
 	echo "<table>";
+	echo "<thead>";
 	echo "<tr>";
 	echo '<th>Poster</th>';
 	echo '<th>Content</th>';
 	echo '<th>Likes</th>';
 	echo "</tr>";
+	echo "</thead>";
 
 	while ($hotCommentsRow = $hotComments->fetch_row()) {
 
